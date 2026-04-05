@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | LegitWays.cc - Educational Insights & Scam Awareness</title>
+    <meta name="description"
+        content="Read the latest educational articles on avoiding scams, finding legitimate opportunities, and improving your life safely. Trusted insights from LegitWays.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/blog-style.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">L</div>
+                <span class="logo-text">LegitWays.cc</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="blog.html" class="active">Blog</a></li>
+                <li><a href="index.html#learn">Learn</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
+            <a href="index.html#guide" class="nav-cta">Get Free Guide</a>
+            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="index.html#guide" class="nav-cta">Get Free Guide</a></li>
+        </ul>
+    </div>
+
+    <!-- Blog Hero -->
+    <section class="blog-hero">
+        <div class="container">
+            <h1>LegitWays Blog</h1>
+            <p>Educational insights, scam awareness tips, and practical guidance to help you navigate opportunities
+                safely and confidently.</p>
+        </div>
+    </section>
+
+    <!-- Blog Content -->
+    <div class="blog-container">
+        <!-- Filters -->
+        <div class="blog-filters">
+            <div class="category-filters" id="categoryFilters">
+                <button class="filter-btn active" data-category="all">All Posts</button>
+                <button class="filter-btn" data-category="scam-awareness">Scam Awareness</button>
+                <button class="filter-btn" data-category="education">Education</button>
+                <button class="filter-btn" data-category="opportunities">Opportunities</button>
+                <button class="filter-btn" data-category="lifestyle">Lifestyle</button>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search articles...">
+            </div>
+        </div>
+
+        <!-- Blog Grid -->
+        <div class="blog-grid" id="blogGrid">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner"></i>
+                <p>Loading articles...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>LegitWays.cc</h3>
+                    <p>Pathways to a Better Life. Education-first guidance to help you learn what works, avoid scams,
+                        and find legit paths to better living.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter/X"><i class="fab fa-x-twitter"></i></a>
+                        <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="#">Mission & Vision</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="index.html#guide">Free Guide</a></li>
+                        <li><a href="index.html#learn">Educational Content</a></li>
+                        <li><a href="#">Scam Awareness</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Disclaimer</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 LegitWays.cc. All rights reserved. | Educational content only.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="scripts/blog.js"></script>
+</body>
+
+</html>

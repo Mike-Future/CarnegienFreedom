@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading... | LegitWays Blog</title>
+    <meta name="description" content="Read educational insights on LegitWays.cc">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/blog-post-style.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">L</div>
+                <span class="logo-text">LegitWays.cc</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="blog.html" class="active">Blog</a></li>
+                <li><a href="index.html#learn">Learn</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
+            <a href="index.html#guide" class="nav-cta">Get Free Guide</a>
+            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="index.html#guide" class="nav-cta">Get Free Guide</a></li>
+        </ul>
+    </div>
+
+    <!-- Article Header -->
+    <header class="article-header" id="articleHeader">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner"></i>
+            <p>Loading article...</p>
+        </div>
+    </header>
+
+    <!-- Article Content -->
+    <article class="article-container" id="articleContainer">
+        <!-- Content loaded dynamically -->
+    </article>
+
+    <!-- Related Articles -->
+    <section class="related-articles">
+        <div class="container">
+            <h3>Related Articles</h3>
+            <div class="related-grid" id="relatedGrid">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>LegitWays.cc</h3>
+                    <p>Pathways to a Better Life. Education-first guidance to help you learn what works, avoid scams,
+                        and find legit paths to better living.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter/X"><i class="fab fa-x-twitter"></i></a>
+                        <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="index.html#guide">Free Guide</a></li>
+                        <li><a href="index.html#learn">Educational Content</a></li>
+                        <li><a href="#">Scam Awareness</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Disclaimer</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 LegitWays.cc. All rights reserved. | Educational content only.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="scripts/blog-post.js"></script>
+</body>
+
+</html>
