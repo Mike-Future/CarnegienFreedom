@@ -1,31 +1,59 @@
-// LegitWays Blog - Dynamic Blog System
-// Loads and displays blog posts from blog-data.json
+// LegitWays Dynamic Blog System
+// Uses IndexedDB for real-time content management
 
+let db = null;
 let allPosts = [];
 let filteredPosts = [];
 
-// Initialize blog when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    loadBlogPosts();
-    setupEventListeners();
-});
-
-// Load blog posts from JSON
-async function loadBlogPosts() {
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const response = await fetch('../data/blog-data.json');
-        const data = await response.json();
-        allPosts = data.posts;
-        filteredPosts = allPosts;
+        // Initialize database
+        const dbAPI = await LegitWaysDB.initDB();
+        db = dbAPI;
 
-        renderPosts();
+        // Load and display posts
+        await loadBlogPosts();
+        setupEventListeners();
+
+        console.log('Dynamic blog system initialized');
     } catch (error) {
-        console.error('Error loading blog posts:', error);
+        console.error('Failed to initialize blog:', error);
         document.getElementById('blogGrid').innerHTML = `
-            <div class="no-results">
+            <div class="no-results" style="grid-column: 1 / -1;">
                 <i class="fas fa-exclamation-circle"></i>
                 <h3>Unable to load articles</h3>
                 <p>Please refresh the page or try again later.</p>
+            </div>
+        `;
+    }
+});
+
+// Load blog posts from IndexedDB
+async function loadBlogPosts() {
+    const grid = document.getElementById('blogGrid');
+    grid.innerHTML = `
+        <div class="loading-spinner" style="grid-column: 1 / -1;">
+            <i class="fas fa-spinner"></i>
+            <p>Loading articles...</p>
+        </div>
+    `;
+
+    try {
+        allPosts = await db.getAllPosts();
+
+        // Sort by date (newest first)
+        allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        filteredPosts = allPosts;
+        renderPosts();
+    } catch (error) {
+        console.error('Error loading posts:', error);
+        grid.innerHTML = `
+            <div class="no-results" style="grid-column: 1 / -1;">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Error loading articles</h3>
+                <p>Unable to load blog posts. Please try again.</p>
             </div>
         `;
     }
@@ -46,12 +74,18 @@ function renderPosts() {
         return;
     }
 
-    const postsHTML = filteredPosts.map(post => {
-        const isFeatured = post.featured && document.querySelector('.filter-btn.active')?.dataset.category === 'all';
+    // Check if we should show featured post (only on 'all' category with no search)
+    const activeCategory = document.querySelector('.filter-btn.active')?.dataset.category;
+    const searchQuery = document.getElementById('searchInput')?.value.trim();
+    const showFeatured = activeCategory === 'all' && !searchQuery;
+
+    const postsHTML = filteredPosts.map((post, index) => {
+        const isFeatured = showFeatured && post.featured && index === 0;
 
         return `
             <article class="blog-card ${isFeatured ? 'featured-post' : ''}" onclick="openArticle('${post.slug}')">
-                <img src="${post.image}" alt="${post.title}" class="blog-image" onerror="this.src='https://via.placeholder.com/800x400/0B2A4A/FFFFFF?text=LegitWays'">
+                <img src="${post.image}" alt="${post.title}" class="blog-image" 
+                     onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80'">
                 <div class="blog-content">
                     ${isFeatured ? '<div class="featured-badge"><i class="fas fa-star"></i> Featured</div>' : ''}
                     <span class="blog-category">${post.categoryLabel}</span>
@@ -74,58 +108,77 @@ function setupEventListeners() {
     // Category filters
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             // Update active state
             filterButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
             // Filter posts
             const category = btn.dataset.category;
-            filterPosts(category);
+            await filterPosts(category);
         });
     });
 
-    // Search input
+    // Search input with debounce
     const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
     searchInput.addEventListener('input', (e) => {
-        searchPosts(e.target.value);
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchPosts(e.target.value);
+        }, 300);
     });
 }
 
 // Filter posts by category
-function filterPosts(category) {
+async function filterPosts(category) {
+    showLoading(true);
+
     if (category === 'all') {
         filteredPosts = allPosts;
     } else {
-        filteredPosts = allPosts.filter(post => post.category === category);
+        filteredPosts = await db.getPostsByCategory(category);
     }
+
+    // Re-sort by date
+    filteredPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
     renderPosts();
+    showLoading(false);
 }
 
 // Search posts
-function searchPosts(query) {
+async function searchPosts(query) {
+    showLoading(true);
+
     const searchTerm = query.toLowerCase().trim();
 
     if (searchTerm === '') {
-        // Reset to current category filter
         const activeCategory = document.querySelector('.filter-btn.active').dataset.category;
-        filterPosts(activeCategory);
+        await filterPosts(activeCategory);
         return;
     }
 
-    filteredPosts = allPosts.filter(post => {
-        return post.title.toLowerCase().includes(searchTerm) ||
-            post.excerpt.toLowerCase().includes(searchTerm) ||
-            post.tags.some(tag => tag.toLowerCase().includes(searchTerm)) ||
-            post.categoryLabel.toLowerCase().includes(searchTerm);
-    });
+    filteredPosts = await db.searchPosts(searchTerm);
+    filteredPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     renderPosts();
+    showLoading(false);
 }
 
 // Navigate to article page
 function openArticle(slug) {
     window.location.href = `blog-post.html?slug=${slug}`;
+}
+
+// Show/hide loading
+function showLoading(show) {
+    const grid = document.getElementById('blogGrid');
+    if (show) {
+        grid.style.opacity = '0.5';
+    } else {
+        grid.style.opacity = '1';
+    }
 }
 
 // Format date for display
@@ -135,7 +188,7 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-US', options);
 }
 
-// Mobile menu toggle (shared function)
+// Mobile menu toggle
 function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');
     menu.classList.toggle('active');
@@ -146,9 +199,13 @@ document.addEventListener('click', (e) => {
     const mobileMenu = document.getElementById('mobileMenu');
     const menuToggle = document.querySelector('.mobile-menu-toggle');
 
-    if (mobileMenu && mobileMenu.classList.contains('active') &&
-        !mobileMenu.contains(e.target) &&
+    if (mobileMenu && mobileMenu.classList.contains('active') && 
+        !mobileMenu.contains(e.target) && 
         !menuToggle.contains(e.target)) {
         mobileMenu.classList.remove('active');
     }
 });
+
+// Make functions globally available
+window.openArticle = openArticle;
+window.toggleMobileMenu = toggleMobileMenu;

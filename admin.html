@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | LegitWays Blog Manager</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/admin-style.css">
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <div class="login-logo">L</div>
+            <h1>LegitWays Admin</h1>
+            <p>Enter your admin password to manage blog posts</p>
+
+            <form id="loginForm">
+                <div class="password-input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Access Admin Panel
+                </button>
+            </form>
+
+            <div class="error-message" id="errorMessage">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText">Incorrect password</span>
+            </div>
+
+            <div class="security-note">
+                <i class="fas fa-shield-alt"></i>
+                This area is protected. Unauthorized access is prohibited.
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner"></i>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <!-- Admin Header -->
+        <header class="admin-header">
+            <div class="admin-brand">
+                <div class="login-logo" style="width: 40px; height: 40px; font-size: 1.2rem; margin: 0;">L</div>
+                <h2>LegitWays Blog Manager</h2>
+                <span class="admin-badge">ADMIN</span>
+            </div>
+            <div class="admin-actions">
+                <a href="blog.html" target="_blank" class="btn btn-secondary">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Blog
+                </a>
+                <button class="btn btn-secondary" onclick="copyJSON()">
+                    <i class="fas fa-copy"></i>
+                    Copy JSON
+                </button>
+                <button class="btn btn-danger" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Admin Container -->
+        <div class="admin-container">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total Posts</h4>
+                    <div class="stat-value" id="totalPosts">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Categories</h4>
+                    <div class="stat-value" id="totalCategories">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Featured</h4>
+                    <div class="stat-value" id="featuredPosts">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Last Updated</h4>
+                    <div class="stat-value" id="lastUpdated" style="font-size: 1rem;">-</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('add')">
+                    <i class="fas fa-plus"></i> Add New Post
+                </button>
+                <button class="tab-btn" onclick="switchTab('manage')">
+                    <i class="fas fa-list"></i> Manage Posts
+                </button>
+                <button class="tab-btn" onclick="switchTab('export')">
+                    <i class="fas fa-code"></i> Export JSON
+                </button>
+            </div>
+
+            <!-- Add Post Tab -->
+            <div class="tab-content active" id="addTab">
+                <div class="instructions">
+                    <h4><i class="fas fa-info-circle"></i> How to Add a New Blog Post</h4>
+                    <ol>
+                        <li>Fill out the form below with your post details</li>
+                        <li>Click "Preview" to see how it will look</li>
+                        <li>When ready, click "Generate JSON" to create the data</li>
+                        <li>Copy the generated JSON and paste it into <code>blog-data.json</code> file</li>
+                        <li>Save the file and your post will be live immediately</li>
+                    </ol>
+                </div>
+
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Post generated successfully! Copy the JSON below.</span>
+                </div>
+
+                <form id="postForm">
+                    <div class="form-section">
+                        <h3><i class="fas fa-heading"></i> Basic Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Post Title <span>*</span></label>
+                                <input type="text" id="postTitle" required
+                                    placeholder="e.g., How to Spot Online Job Scams">
+                                <small>This appears as the main headline</small>
+                            </div>
+                            <div class="form-group">
+                                <label>URL Slug <span>*</span></label>
+                                <input type="text" id="postSlug" required
+                                    placeholder="e.g., how-to-spot-online-job-scams">
+                                <small>URL-friendly version (auto-generated from title)</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Category <span>*</span></label>
+                                <select id="postCategory" required>
+                                    <option value="">Select category...</option>
+                                    <option value="scam-awareness">Scam Awareness</option>
+                                    <option value="education">Education</option>
+                                    <option value="opportunities">Opportunities</option>
+                                    <option value="lifestyle">Lifestyle</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Author <span>*</span></label>
+                                <input type="text" id="postAuthor" required placeholder="e.g., LegitWays Team">
+                            </div>
+                            <div class="form-group">
+                                <label>Read Time <span>*</span></label>
+                                <input type="text" id="postReadTime" required placeholder="e.g., 5 min read">
+                            </div>
+                            <div class="form-group">
+                                <label>Featured Image URL</label>
+                                <input type="url" id="postImage" placeholder="https://images.unsplash.com/...">
+                                <small>Use Unsplash or similar high-quality image source</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3><i class="fas fa-align-left"></i> Content</h3>
+                        <div class="form-group full-width">
+                            <label>Excerpt <span>*</span></label>
+                            <textarea id="postExcerpt" required maxlength="300"
+                                placeholder="Brief summary for preview cards (max 300 chars)"></textarea>
+                            <div class="char-count"><span id="excerptCount">0</span>/300</div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Full Content (HTML) <span>*</span></label>
+                            <textarea id="postContent" required
+                                placeholder="<p>Write your article content here using HTML...</p>"></textarea>
+                            <small>Supports HTML: &lt;p&gt;, &lt;h2&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;blockquote&gt;,
+                                &lt;div class=&quot;warning-box&quot;&gt;, etc.</small>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Tags (comma-separated)</label>
+                            <input type="text" id="postTags" placeholder="scam awareness, online safety, jobs">
+                            <small>Helps with search and related articles</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="postFeatured" style="width: auto; margin-right: 0.5rem;">
+                                Mark as Featured Post
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="button" class="btn btn-secondary" onclick="previewPost()"
+                            style="background: var(--soft-sky-blue); color: white;">
+                            <i class="fas fa-eye"></i> Preview
+                        </button>
+                        <button type="submit" class="btn" style="background: var(--growth-green); color: white;">
+                            <i class="fas fa-magic"></i> Generate JSON
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Preview Section -->
+                <div class="preview-section" id="previewSection" style="display: none;">
+                    <div class="preview-header">
+                        <h3>Preview</h3>
+                        <button class="btn btn-secondary" onclick="closePreview()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                    <div class="preview-content" id="previewContent">
+                        <!-- Preview renders here -->
+                    </div>
+                </div>
+
+                <!-- JSON Output -->
+                <div class="preview-section" id="jsonSection" style="display: none;">
+                    <div class="preview-header">
+                        <h3>Generated JSON</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-secondary" onclick="copyJSON()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <button class="btn btn-secondary" onclick="closeJSON()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="json-export" id="jsonOutput"></div>
+                    <div class="instructions" style="margin-top: 1rem;">
+                        <p><strong>Next steps:</strong></p>
+                        <ol>
+                            <li>Copy this JSON (button above)</li>
+                            <li>Open your <code>blog-data.json</code> file</li>
+                            <li>Add a comma after the last post in the "posts" array</li>
+                            <li>Paste this JSON as the new last item</li>
+                            <li>Save and upload the file to your server</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Posts Tab -->
+            <div class="tab-content" id="manageTab">
+                <div class="posts-list" id="postsList">
+                    <!-- Posts load here dynamically -->
+                </div>
+            </div>
+
+            <!-- Export JSON Tab -->
+            <div class="tab-content" id="exportTab">
+                <div class="instructions">
+                    <h4><i class="fas fa-download"></i> Complete Blog Data</h4>
+                    <p>This is your complete <code>blog-data.json</code> file content. Copy this and save it to replace
+                        your current file.</p>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <button class="btn" onclick="copyFullJSON()" style="background: var(--growth-green); color: white;">
+                        <i class="fas fa-copy"></i> Copy Full JSON
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadJSON()">
+                        <i class="fas fa-download"></i> Download File
+                    </button>
+                </div>
+                <div class="json-export" id="fullJsonOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/admin.js"></script>
+</body>
+
+</html>

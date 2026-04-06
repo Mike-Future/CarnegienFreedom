@@ -1,12 +1,23 @@
-// LegitWays Blog Post - Individual Article Viewer
-// Loads specific article based on URL parameter
+// LegitWays Dynamic Blog Post Viewer
+// Loads specific article from IndexedDB based on URL parameter
 
+let db = null;
 let currentPost = null;
 let allPosts = [];
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    loadArticle();
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Initialize database
+        const dbAPI = await LegitWaysDB.initDB();
+        db = dbAPI;
+
+        // Load article
+        await loadArticle();
+    } catch (error) {
+        console.error('Failed to initialize article:', error);
+        showError('Unable to load article. Please try again later.');
+    }
 });
 
 // Load specific article from URL parameter
@@ -20,14 +31,21 @@ async function loadArticle() {
         return;
     }
 
+    // Show loading
+    const header = document.getElementById('articleHeader');
+    header.innerHTML = `
+        <div class="loading-spinner">
+            <i class="fas fa-spinner"></i>
+            <p>Loading article...</p>
+        </div>
+    `;
+
     try {
-        // Load all posts data
-        const response = await fetch('../data/blog-data.json');
-        const data = await response.json();
-        allPosts = data.posts;
+        // Load all posts for related articles
+        allPosts = await db.getAllPosts();
 
         // Find specific post
-        currentPost = allPosts.find(post => post.slug === slug);
+        currentPost = await db.getPostBySlug(slug);
 
         if (!currentPost) {
             showError('Article not found');
@@ -46,6 +64,9 @@ async function loadArticle() {
         if (metaDesc) {
             metaDesc.content = currentPost.excerpt;
         }
+
+        // Track view (optional analytics)
+        console.log(`Article viewed: ${currentPost.title}`);
 
     } catch (error) {
         console.error('Error loading article:', error);
@@ -76,14 +97,15 @@ function renderArticle() {
 
     // Render content
     container.innerHTML = `
-        <img src="${currentPost.image}" alt="${currentPost.title}" class="article-featured-image" onerror="this.style.display='none'">
+        <img src="${currentPost.image}" alt="${currentPost.title}" class="article-featured-image" 
+             onerror="this.style.display='none'">
 
         <div class="article-content">
             ${currentPost.content}
         </div>
 
         <div class="article-tags">
-            ${currentPost.tags.map(tag => `<a href="blog.html?tag=${tag}" class="article-tag">#${tag}</a>`).join('')}
+            ${currentPost.tags.map(tag => `<a href="blog.html?tag=${encodeURIComponent(tag)}" class="article-tag">#${tag}</a>`).join('')}
         </div>
 
         <div class="share-section">
@@ -114,14 +136,16 @@ function renderArticle() {
 function renderRelatedArticles() {
     const relatedGrid = document.getElementById('relatedGrid');
 
+    if (!relatedGrid) return;
+
     // Find related posts (same category, excluding current)
-    let related = allPosts.filter(post =>
+    let related = allPosts.filter(post => 
         post.category === currentPost.category && post.id !== currentPost.id
     );
 
     // If not enough in same category, add other recent posts
     if (related.length < 3) {
-        const otherPosts = allPosts.filter(post =>
+        const otherPosts = allPosts.filter(post => 
             post.id !== currentPost.id && !related.find(r => r.id === post.id)
         ).slice(0, 3 - related.length);
         related = [...related, ...otherPosts];
@@ -137,7 +161,8 @@ function renderRelatedArticles() {
 
     const relatedHTML = related.map(post => `
         <article class="blog-card" onclick="openArticle('${post.slug}')" style="cursor: pointer;">
-            <img src="${post.image}" alt="${post.title}" class="blog-image" style="height: 150px;" onerror="this.src='https://via.placeholder.com/800x400/0B2A4A/FFFFFF?text=LegitWays'">
+            <img src="${post.image}" alt="${post.title}" class="blog-image" style="height: 150px;" 
+                 onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80'">
             <div class="blog-content" style="padding: 1.25rem;">
                 <span class="blog-category">${post.categoryLabel}</span>
                 <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">${post.title}</h3>
@@ -169,11 +194,17 @@ function showError(message) {
             <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #F2C94C; margin-bottom: 1rem;"></i>
             <h2 style="color: #0B2A4A; margin-bottom: 1rem;">Article Not Found</h2>
             <p style="color: #6b7280; margin-bottom: 2rem;">${message}</p>
-            <a href="blog.html" class="btn-primary" style="display: inline-flex;">
+            <a href="blog.html" class="btn-primary" style="display: inline-flex; background: #3CB54A; color: white; padding: 1rem 2rem; border-radius: 50px; text-decoration: none;">
                 <i class="fas fa-book-open"></i> Browse All Articles
             </a>
         </div>
     `;
+
+    // Hide related articles section
+    const relatedSection = document.querySelector('.related-articles');
+    if (relatedSection) {
+        relatedSection.style.display = 'none';
+    }
 }
 
 // Navigate to article
@@ -199,8 +230,8 @@ document.addEventListener('click', (e) => {
     const mobileMenu = document.getElementById('mobileMenu');
     const menuToggle = document.querySelector('.mobile-menu-toggle');
 
-    if (mobileMenu && mobileMenu.classList.contains('active') &&
-        !mobileMenu.contains(e.target) &&
+    if (mobileMenu && mobileMenu.classList.contains('active') && 
+        !mobileMenu.contains(e.target) && 
         !menuToggle.contains(e.target)) {
         mobileMenu.classList.remove('active');
     }
@@ -219,3 +250,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         }
     });
 });
+
+// Make functions globally available
+window.openArticle = openArticle;
+window.toggleMobileMenu = toggleMobileMenu;
