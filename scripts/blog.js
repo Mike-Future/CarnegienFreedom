@@ -199,8 +199,8 @@ document.addEventListener('click', (e) => {
     const mobileMenu = document.getElementById('mobileMenu');
     const menuToggle = document.querySelector('.mobile-menu-toggle');
 
-    if (mobileMenu && mobileMenu.classList.contains('active') && 
-        !mobileMenu.contains(e.target) && 
+    if (mobileMenu && mobileMenu.classList.contains('active') &&
+        !mobileMenu.contains(e.target) &&
         !menuToggle.contains(e.target)) {
         mobileMenu.classList.remove('active');
     }
