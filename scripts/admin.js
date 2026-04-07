@@ -113,13 +113,13 @@ async function updateStats() {
 
     document.getElementById('totalPosts').textContent = posts.length;
     document.getElementById('totalCategories').textContent = categories.length;
-    document.getElementById('featuredPosts').textContent = 
+    document.getElementById('featuredPosts').textContent =
         posts.filter(p => p.featured).length;
 
     if (posts.length > 0) {
         const dates = posts.map(p => new Date(p.date));
         const maxDate = new Date(Math.max(...dates));
-        document.getElementById('lastUpdated').textContent = 
+        document.getElementById('lastUpdated').textContent =
             maxDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 }
@@ -163,8 +163,8 @@ async function savePost() {
         date: isEditing && currentPost ? currentPost.date : new Date().toISOString().split('T')[0],
         readTime: document.getElementById('postReadTime').value,
         featured: document.getElementById('postFeatured').checked,
-        image: document.getElementById('postImage').value || 
-               'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80',
+        image: document.getElementById('postImage').value ||
+            'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80',
         tags: document.getElementById('postTags').value.split(',').map(t => t.trim()).filter(t => t),
         content: document.getElementById('postContent').value
     };
