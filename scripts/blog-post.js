@@ -139,13 +139,13 @@ function renderRelatedArticles() {
     if (!relatedGrid) return;
 
     // Find related posts (same category, excluding current)
-    let related = allPosts.filter(post => 
+    let related = allPosts.filter(post =>
         post.category === currentPost.category && post.id !== currentPost.id
     );
 
     // If not enough in same category, add other recent posts
     if (related.length < 3) {
-        const otherPosts = allPosts.filter(post => 
+        const otherPosts = allPosts.filter(post =>
             post.id !== currentPost.id && !related.find(r => r.id === post.id)
         ).slice(0, 3 - related.length);
         related = [...related, ...otherPosts];
@@ -230,8 +230,8 @@ document.addEventListener('click', (e) => {
     const mobileMenu = document.getElementById('mobileMenu');
     const menuToggle = document.querySelector('.mobile-menu-toggle');
 
-    if (mobileMenu && mobileMenu.classList.contains('active') && 
-        !mobileMenu.contains(e.target) && 
+    if (mobileMenu && mobileMenu.classList.contains('active') &&
+        !mobileMenu.contains(e.target) &&
         !menuToggle.contains(e.target)) {
         mobileMenu.classList.remove('active');
     }
