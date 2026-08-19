@@ -40,21 +40,35 @@ document.querySelectorAll('.fade-in').forEach(el => {
 });
 
 // Form Handler for Lead Magnet
-function handleSubmit(e) {
+async function handleSubmit(e) {
     e.preventDefault();
 
-    // Get email value
     const emailInput = e.target.querySelector('.email-input');
-    const email = emailInput.value;
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const email = emailInput.value.trim();
 
-    // Show success message
-    alert('Thank you! Your guide will be sent to ' + email + ' shortly.');
+    submitButton.disabled = true;
+    submitButton.setAttribute('aria-busy', 'true');
 
-    // Reset form
-    e.target.reset();
+    try {
+        const response = await fetch('/api/guide', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'Unable to send the guide');
+        }
 
-    // Optional: Here you would typically send the data to your backend
-    // fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email }) })
+        alert('Thank you! Your guide has been sent to ' + email + '.');
+        e.target.reset();
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-busy');
+    }
 }
 
 // Navbar Scroll Effect
@@ -74,8 +88,8 @@ document.addEventListener('click', (e) => {
     const mobileMenu = document.getElementById('mobileMenu');
     const menuToggle = document.querySelector('.mobile-menu-toggle');
 
-    if (mobileMenu.classList.contains('active') && 
-        !mobileMenu.contains(e.target) && 
+    if (mobileMenu.classList.contains('active') &&
+        !mobileMenu.contains(e.target) &&
         !menuToggle.contains(e.target)) {
         mobileMenu.classList.remove('active');
     }

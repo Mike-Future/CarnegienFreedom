@@ -3,11 +3,13 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs/promises');
 const { Pool } = require('pg');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'blog-data.json');
+const GUIDE_FILE = path.join(__dirname, 'assets', 'legit-ways-guide.pdf');
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -155,6 +157,46 @@ async function updateCategoryCounts() {
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
+});
+
+app.post('/api/guide', async (req, res) => {
+    const email = String(req.body?.email || '').trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+        return res.status(400).json({ error: 'A valid email address is required' });
+    }
+
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+        return res.status(503).json({ error: 'Email delivery is not configured' });
+    }
+
+    try {
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT || 587),
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD
+            }
+        });
+
+        await transporter.sendMail({
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: email,
+            subject: 'Your LegitWays educational guide',
+            text: 'Thank you for requesting the LegitWays educational guide. It is attached to this email.',
+            attachments: [{
+                filename: 'legit-ways-guide.pdf',
+                path: GUIDE_FILE,
+                contentType: 'application/pdf'
+            }]
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Guide email failed:', error.message);
+        res.status(500).json({ error: 'Unable to send the guide right now' });
+    }
 });
 
 app.get('/api/posts', async (req, res) => {
@@ -315,7 +357,7 @@ app.post('/api/data/import', async (req, res) => {
 
         for (const category of data.categories) {
             await pool.query(
-                `INSERT INTO categories (id, name, count) VALUES ($1, $2, $3)`, 
+                `INSERT INTO categories (id, name, count) VALUES ($1, $2, $3)`,
                 [category.id, category.name, category.count || 0]
             );
         }
