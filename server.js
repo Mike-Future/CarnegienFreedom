@@ -578,3 +578,6 @@ initDatabase()
             console.log(`Server started on http://localhost:${PORT}`);
         });
     });
+
+const helmet = require('helmet');
+app.use(helmet());
