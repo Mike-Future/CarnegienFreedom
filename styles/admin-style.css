@@ -149,6 +149,20 @@ body {
     display: block;
 }
 
+.auth-switch {
+    margin-top: 1rem;
+    border: 0;
+    background: transparent;
+    color: var(--soft-sky-blue);
+    cursor: pointer;
+    font: inherit;
+}
+
+.auth-switch:hover {
+    color: var(--deep-trust-blue);
+    text-decoration: underline;
+}
+
 .security-note {
     margin-top: 2rem;
     padding: 1rem;

@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs/promises');
+const crypto = require('crypto');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
@@ -40,6 +42,8 @@ function normalizePost(row) {
 }
 
 async function initDatabase() {
+    await pool.query('CREATE EXTENSION IF NOT EXISTS pgcrypto;');
+
     await pool.query(`
         CREATE TABLE IF NOT EXISTS categories (
             id TEXT PRIMARY KEY,
@@ -70,6 +74,24 @@ async function initDatabase() {
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value JSONB NOT NULL
+        );
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS admin_users (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            username TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS admin_sessions (
+            token_hash TEXT PRIMARY KEY,
+            user_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+            expires_at TIMESTAMPTZ NOT NULL
         );
     `);
 
@@ -171,6 +193,126 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
+function createSessionToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+function hashSessionToken(token) {
+    return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function setSessionCookie(res, token) {
+    res.setHeader('Set-Cookie', `legitways_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400`);
+}
+
+function getSessionToken(req) {
+    const cookies = String(req.headers.cookie || '').split(';');
+    const sessionCookie = cookies.find(cookie => cookie.trim().startsWith('legitways_session='));
+    return sessionCookie ? sessionCookie.trim().slice('legitways_session='.length) : null;
+}
+
+async function requireAdmin(req, res, next) {
+    if (!databaseAvailable) {
+        return res.status(503).json({ error: 'Database is unavailable' });
+    }
+
+    const token = getSessionToken(req);
+    if (!token) {
+        return res.status(401).json({ error: 'Admin login required' });
+    }
+
+    let result;
+    try {
+        result = await pool.query(
+            `SELECT admin_users.id, admin_users.username, admin_users.email
+             FROM admin_sessions
+             JOIN admin_users ON admin_users.id = admin_sessions.user_id
+             WHERE admin_sessions.token_hash = $1 AND admin_sessions.expires_at > NOW()`,
+            [hashSessionToken(token)]
+        );
+    } catch (error) {
+        return res.status(503).json({ error: 'Database is unavailable' });
+    }
+
+    if (!result.rows[0]) {
+        return res.status(401).json({ error: 'Admin session expired' });
+    }
+
+    req.adminUser = result.rows[0];
+    next();
+}
+
+app.post('/api/auth/register', async (req, res) => {
+    const username = String(req.body?.username || '').trim();
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const password = String(req.body?.password || '');
+
+    if (!username || !/^\S+@\S+\.\S+$/.test(email) || password.length < 8) {
+        return res.status(400).json({ error: 'Username, valid email, and password of at least 8 characters are required' });
+    }
+
+    try {
+        const passwordHash = await bcrypt.hash(password, 12);
+        const result = await pool.query(
+            `INSERT INTO admin_users (username, email, password_hash)
+             VALUES ($1, $2, $3)
+             RETURNING id, username, email`,
+            [username, email, passwordHash]
+        );
+        const token = createSessionToken();
+        await pool.query(
+            `INSERT INTO admin_sessions (token_hash, user_id, expires_at)
+             VALUES ($1, $2, NOW() + INTERVAL '24 hours')`,
+            [hashSessionToken(token), result.rows[0].id]
+        );
+        setSessionCookie(res, token);
+        res.status(201).json({ user: result.rows[0] });
+    } catch (error) {
+        if (error.code === '23505') {
+            return res.status(409).json({ error: 'An account with that email already exists' });
+        }
+        console.error('Admin registration failed:', error.message);
+        res.status(500).json({ error: 'Unable to create admin account' });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const password = String(req.body?.password || '');
+    let result;
+    try {
+        result = await pool.query('SELECT id, username, email, password_hash FROM admin_users WHERE email = $1 LIMIT 1', [email]);
+    } catch (error) {
+        return res.status(503).json({ error: 'Database is unavailable' });
+    }
+
+    if (!result.rows[0] || !(await bcrypt.compare(password, result.rows[0].password_hash))) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const token = createSessionToken();
+    await pool.query(
+        `INSERT INTO admin_sessions (token_hash, user_id, expires_at)
+         VALUES ($1, $2, NOW() + INTERVAL '24 hours')`,
+        [hashSessionToken(token), result.rows[0].id]
+    );
+    setSessionCookie(res, token);
+    res.json({ user: { id: result.rows[0].id, username: result.rows[0].username, email: result.rows[0].email } });
+});
+
+app.get('/api/auth/session', requireAdmin, (req, res) => {
+    res.json({ user: req.adminUser });
+});
+
+app.post('/api/auth/logout', async (req, res) => {
+    const token = getSessionToken(req);
+    if (token && databaseAvailable) {
+        await pool.query('DELETE FROM admin_sessions WHERE token_hash = $1', [hashSessionToken(token)]);
+    }
+    res.setHeader('Set-Cookie', 'legitways_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
+    res.status(204).end();
+});
+
 app.post('/api/guide', async (req, res) => {
     const email = String(req.body?.email || '').trim();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
@@ -251,7 +393,7 @@ app.get('/api/posts/search', async (req, res) => {
     res.json(result.rows.map(normalizePost));
 });
 
-app.post('/api/posts', async (req, res) => {
+app.post('/api/posts', requireAdmin, async (req, res) => {
     const post = req.body;
     if (!post || !post.id || !post.slug || !post.title) {
         return res.status(400).json({ error: 'Post id, slug, and title are required' });
@@ -294,7 +436,7 @@ app.post('/api/posts', async (req, res) => {
     res.json({ success: true });
 });
 
-app.delete('/api/posts/:id', async (req, res) => {
+app.delete('/api/posts/:id', requireAdmin, async (req, res) => {
     await pool.query('DELETE FROM posts WHERE id = $1', [req.params.id]);
     await updateCategoryCounts();
     res.status(204).end();
@@ -305,7 +447,7 @@ app.get('/api/categories', async (req, res) => {
     res.json(result.rows);
 });
 
-app.post('/api/categories', async (req, res) => {
+app.post('/api/categories', requireAdmin, async (req, res) => {
     const category = req.body;
     if (!category || !category.id || !category.name) {
         return res.status(400).json({ error: 'Category id and name are required' });
@@ -319,7 +461,7 @@ app.post('/api/categories', async (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/categories/update-counts', async (req, res) => {
+app.post('/api/categories/update-counts', requireAdmin, async (req, res) => {
     await updateCategoryCounts();
     const result = await pool.query('SELECT * FROM categories ORDER BY name ASC');
     res.json(result.rows);
@@ -333,7 +475,7 @@ app.get('/api/settings/:key', async (req, res) => {
     res.json(result.rows[0].value);
 });
 
-app.post('/api/settings', async (req, res) => {
+app.post('/api/settings', requireAdmin, async (req, res) => {
     const { key, value } = req.body;
     if (!key) {
         return res.status(400).json({ error: 'Setting key is required' });
@@ -356,7 +498,7 @@ app.get('/api/data/export', async (req, res) => {
     });
 });
 
-app.post('/api/data/import', async (req, res) => {
+app.post('/api/data/import', requireAdmin, async (req, res) => {
     const data = req.body;
     if (!data || !Array.isArray(data.posts) || !Array.isArray(data.categories)) {
         return res.status(400).json({ error: 'Import payload must contain posts and categories arrays' });
@@ -406,7 +548,7 @@ app.post('/api/data/import', async (req, res) => {
     }
 });
 
-app.post('/api/data/clear', async (req, res) => {
+app.post('/api/data/clear', requireAdmin, async (req, res) => {
     await pool.query('DELETE FROM posts');
     await pool.query('DELETE FROM categories');
     res.status(204).end();

@@ -19,20 +19,31 @@
         <div class="login-box">
             <div class="login-logo">L</div>
             <h1>LegitWays Admin</h1>
-            <p>Enter your admin password to manage blog posts</p>
+            <p id="authPrompt">Log in to manage blog posts</p>
 
             <form id="loginForm">
+                <div class="password-input-wrapper" id="usernameField" style="display: none;">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="adminUsername" placeholder="Choose a username" autocomplete="username">
+                </div>
+                <div class="password-input-wrapper" id="emailField">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="adminEmail" placeholder="Admin email" autocomplete="email" required>
+                </div>
                 <div class="password-input-wrapper">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password"
+                        autocomplete="current-password" required>
                     <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
                 </div>
 
                 <button type="submit" class="login-btn" id="loginBtn">
                     <i class="fas fa-sign-in-alt"></i>
-                    Access Admin Panel
+                    Log In
                 </button>
             </form>
+
+            <button type="button" class="auth-switch" id="authSwitch">Need an account? Register</button>
 
             <div class="error-message" id="errorMessage">
                 <i class="fas fa-exclamation-circle"></i>

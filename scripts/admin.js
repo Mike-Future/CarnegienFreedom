@@ -1,44 +1,43 @@
 // LegitWays Dynamic Admin Panel
 // Full CRUD operations through the Node.js API
 
-// ==================== CONFIGURATION ====================
-// IMPORTANT: Change this password before deploying!
-const ADMIN_PASSWORD_HASH = 'e48674cc9d788f35e2957baacb6dba7b3932e0c2e756bebdbf8140a02776463c'; // "password"
-
 let db = null;
 let currentPost = null;
 let isEditing = false;
+let registrationMode = false;
 
-// ==================== ENCRYPTION UTILITIES ====================
-
-async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+async function authRequest(path, body) {
+    const response = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(body)
+    });
+    const result = response.status === 204 ? null : await response.json();
+    if (!response.ok) {
+        throw new Error(result?.error || 'Authentication request failed');
+    }
+    return result;
 }
 
 // ==================== AUTHENTICATION ====================
 
 async function checkAuth() {
-    const session = localStorage.getItem('legitways_admin_session');
-    if (session) {
-        try {
-            const sessionData = JSON.parse(session);
-            if (sessionData.timestamp && (Date.now() - sessionData.timestamp) < 86400000) {
-                await initAdmin();
-                return;
-            }
-        } catch (e) {
-            console.error('Invalid session');
+    try {
+        const response = await fetch('/api/auth/session', { credentials: 'same-origin' });
+        if (response.ok) {
+            await initAdmin();
         }
-        localStorage.removeItem('legitways_admin_session');
+    } catch (error) {
+        console.warn('No active admin session');
     }
 }
 
 async function handleLogin(e) {
     e.preventDefault();
 
+    const email = document.getElementById('adminEmail').value.trim();
+    const username = document.getElementById('adminUsername').value.trim();
     const password = document.getElementById('adminPassword').value;
     const errorMessage = document.getElementById('errorMessage');
     const loginBtn = document.getElementById('loginBtn');
@@ -46,16 +45,15 @@ async function handleLogin(e) {
     loginBtn.disabled = true;
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
 
-    const inputHash = await sha256(password);
-
-    if (inputHash === ADMIN_PASSWORD_HASH) {
-        const sessionData = {
-            timestamp: Date.now(),
-            token: await sha256(password + Date.now())
-        };
-        localStorage.setItem('legitways_admin_session', JSON.stringify(sessionData));
+    try {
+        await authRequest(registrationMode ? '/api/auth/register' : '/api/auth/login', {
+            ...(registrationMode ? { username } : {}),
+            email,
+            password
+        });
         await initAdmin();
-    } else {
+    } catch (error) {
+        document.getElementById('errorText').textContent = error.message;
         errorMessage.classList.add('show');
         document.querySelector('.login-box').style.animation = 'shake 0.5s';
         setTimeout(() => {
@@ -64,7 +62,9 @@ async function handleLogin(e) {
     }
 
     loginBtn.disabled = false;
-    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Access Admin Panel';
+    loginBtn.innerHTML = registrationMode
+        ? '<i class="fas fa-user-plus"></i> Register'
+        : '<i class="fas fa-sign-in-alt"></i> Log In';
 }
 
 async function initAdmin() {
@@ -80,8 +80,25 @@ async function initAdmin() {
 }
 
 function logout() {
-    localStorage.removeItem('legitways_admin_session');
-    location.reload();
+    authRequest('/api/auth/logout', {}).finally(() => location.reload());
+}
+
+function toggleAuthMode() {
+    registrationMode = !registrationMode;
+    const usernameInput = document.getElementById('adminUsername');
+    document.getElementById('usernameField').style.display = registrationMode ? 'block' : 'none';
+    usernameInput.required = registrationMode;
+    document.getElementById('adminPassword').autocomplete = registrationMode ? 'new-password' : 'current-password';
+    document.getElementById('authPrompt').textContent = registrationMode
+        ? 'Create the first admin account'
+        : 'Log in to manage blog posts';
+    document.getElementById('loginBtn').innerHTML = registrationMode
+        ? '<i class="fas fa-user-plus"></i> Register'
+        : '<i class="fas fa-sign-in-alt"></i> Log In';
+    document.getElementById('authSwitch').textContent = registrationMode
+        ? 'Already have an account? Log in'
+        : 'Need an account? Register';
+    document.getElementById('errorMessage').classList.remove('show');
 }
 
 function togglePassword() {
@@ -508,6 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Setup login form
     document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+    document.getElementById('authSwitch')?.addEventListener('click', toggleAuthMode);
 
     // Setup file import
     const fileInput = document.getElementById('importFile');
