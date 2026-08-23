@@ -10,6 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'blog-data.json');
 const GUIDE_FILE = path.join(__dirname, 'assets', 'legit-ways-guide.pdf');
+let databaseAvailable = false;
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -77,6 +78,7 @@ async function initDatabase() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);`);
 
     await loadDefaultDataIfEmpty();
+    databaseAvailable = true;
 }
 
 async function loadDefaultDataIfEmpty() {
@@ -163,6 +165,9 @@ async function updateCategoryCounts() {
 }
 
 app.get('/api/health', (req, res) => {
+    if (!databaseAvailable) {
+        return res.status(503).json({ status: 'database-unavailable' });
+    }
     res.json({ status: 'ok' });
 });
 
@@ -419,12 +424,11 @@ app.use((req, res) => {
 });
 
 initDatabase()
-    .then(() => {
+    .catch((error) => {
+        console.error('Database unavailable; serving local blog data:', error.message);
+    })
+    .finally(() => {
         app.listen(PORT, () => {
             console.log(`Server started on http://localhost:${PORT}`);
         });
-    })
-    .catch((error) => {
-        console.error('Failed to initialize database:', error);
-        process.exit(1);
     });

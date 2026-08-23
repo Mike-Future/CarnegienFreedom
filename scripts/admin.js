@@ -3,7 +3,7 @@
 
 // ==================== CONFIGURATION ====================
 // IMPORTANT: Change this password before deploying!
-const ADMIN_PASSWORD_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // "password"
+const ADMIN_PASSWORD_HASH = 'e48674cc9d788f35e2957baacb6dba7b3932e0c2e756bebdbf8140a02776463c'; // "password"
 
 let db = null;
 let currentPost = null;
