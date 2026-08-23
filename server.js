@@ -65,6 +65,13 @@ async function initDatabase() {
         );
     `);
 
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value JSONB NOT NULL
+        );
+    `);
+
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(featured);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);`);
