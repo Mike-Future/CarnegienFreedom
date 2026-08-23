@@ -1,28 +1,40 @@
 # LegitWays Dynamic Blog System
 
 ## Overview
-This is a **client-side dynamic blog system** that requires no backend server or database. All blog content is stored in a JSON file and rendered dynamically using JavaScript.
+
+This is a **Node.js dynamic blog system**. The Express backend stores blog content in PostgreSQL and serves it to the existing browser UI through JSON APIs.
 
 ## How It Works
 
 ### Data Flow
-1. **blog-data.json** - Contains all blog posts, categories, and metadata
-2. **JavaScript** - Fetches the JSON and renders content dynamically
+
+1. **PostgreSQL** - Stores all blog posts, categories, settings, and metadata
+2. **Express API** - Reads and updates the database through server-side routes
 3. **HTML Templates** - Provide the structure, content is injected by JS
+
+## Start the Database and Server
+
+1. Install Docker Desktop.
+2. Run `npm run db:start` to start PostgreSQL.
+3. Run `npm start` to start the Node.js server.
+4. Open `http://localhost:3000/blog.html`.
+
+The first server start creates the tables and imports the default data from `data/blog-data.json` when the database is empty.
 
 ### Files Added
 
-| File | Purpose |
-|------|---------|
-| `blog.html` | Blog listing page with filters and search |
-| `blog-post.html` | Individual article template |
-| `blog.js` | Blog listing functionality (filter, search, render) |
-| `blog-post.js` | Individual article loader and renderer |
-| `blog-data.json` | Database containing all blog posts |
+| File             | Purpose                                             |
+| ---------------- | --------------------------------------------------- |
+| `blog.html`      | Blog listing page with filters and search           |
+| `blog-post.html` | Individual article template                         |
+| `blog.js`        | Blog listing functionality (filter, search, render) |
+| `blog-post.js`   | Individual article loader and renderer              |
+| `blog-data.json` | Database containing all blog posts                  |
 
 ## Features
 
 ### Blog Listing Page (blog.html)
+
 - ✅ Category filtering (All, Scam Awareness, Education, Opportunities, Lifestyle)
 - ✅ Real-time search (searches title, excerpt, tags, category)
 - ✅ Featured post highlighting
@@ -31,6 +43,7 @@ This is a **client-side dynamic blog system** that requires no backend server or
 - ✅ "No results" handling
 
 ### Individual Article Page (blog-post.html)
+
 - ✅ Dynamic content loading based on URL parameter (`?slug=article-name`)
 - ✅ Full article rendering with HTML content support
 - ✅ Social sharing buttons (Facebook, Twitter, LinkedIn, WhatsApp)
@@ -39,7 +52,9 @@ This is a **client-side dynamic blog system** that requires no backend server or
 - ✅ Error handling for missing articles
 
 ### Content Management (blog-data.json)
+
 Each post includes:
+
 - `id`, `slug` (URL-friendly name)
 - `title`, `excerpt` (for previews)
 - `category`, `categoryLabel`
@@ -78,7 +93,9 @@ Each post includes:
 ## Content Formatting Tips
 
 ### HTML Content Support
+
 The `content` field supports full HTML:
+
 - `<p>` paragraphs
 - `<h2>`, `<h3>` headings
 - `<ul>`, `<ol>` lists
@@ -88,7 +105,9 @@ The `content` field supports full HTML:
 - `<strong>` bold text
 
 ### Special CSS Classes
+
 Use these classes in your HTML content:
+
 - `warning-box` - Yellow warning callout
 - `tip-box` - Green tip callout
 - `featured-post` - Large featured layout (auto-applied)
@@ -96,6 +115,7 @@ Use these classes in your HTML content:
 ## Navigation Integration
 
 The blog is now integrated into your main navigation:
+
 - Added "Blog" link to main navbar
 - Links to blog.html from homepage
 - "Back to Blog" links on article pages
@@ -104,13 +124,16 @@ The blog is now integrated into your main navigation:
 ## SEO Considerations
 
 ### Current Implementation
+
 - ✅ Meta descriptions from excerpts
 - ✅ Semantic HTML (article, header tags)
 - ✅ Clean URL slugs
 - ✅ Mobile-responsive design
 
 ### For Better SEO (Optional Enhancements)
+
 Consider adding:
+
 - Static HTML generation (using tools like 11ty)
 - Server-side rendering for meta tags
 - XML sitemap
@@ -119,6 +142,7 @@ Consider adding:
 ## Hosting Requirements
 
 This blog system works on **any static host**:
+
 - GitHub Pages
 - Netlify
 - Vercel
@@ -163,6 +187,7 @@ All posts align with LegitWays brand: education-first, scam-aware, realistic exp
 ## Support
 
 For questions about:
+
 - **Adding posts**: Edit blog-data.json following the format above
 - **Styling**: Modify styles.css (blog section at bottom)
 - **Functionality**: Check blog.js or blog-post.js
