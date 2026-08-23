@@ -117,19 +117,19 @@
             <!-- Add Post Tab -->
             <div class="tab-content active" id="addTab">
                 <div class="instructions">
-                    <h4><i class="fas fa-info-circle"></i> How to Add a New Blog Post</h4>
+                    <h4><i class="fas fa-info-circle"></i> Publish a New Blog Post</h4>
                     <ol>
                         <li>Fill out the form below with your post details</li>
                         <li>Click "Preview" to see how it will look</li>
-                        <li>When ready, click "Generate JSON" to create the data</li>
-                        <li>Copy the generated JSON and paste it into <code>blog-data.json</code> file</li>
-                        <li>Save the file and your post will be live immediately</li>
+                        <li>When ready, click "Publish Post" to save it to the database</li>
+                        <li>Find published posts in "Manage Posts" to edit or delete them</li>
+                        <li>Your post will appear on the public blog immediately</li>
                     </ol>
                 </div>
 
                 <div class="success-message" id="successMessage">
                     <i class="fas fa-check-circle"></i>
-                    <span>Post generated successfully! Copy the JSON below.</span>
+                    <span>Post published successfully and is now live.</span>
                 </div>
 
                 <form id="postForm">
@@ -208,7 +208,7 @@
                             <i class="fas fa-eye"></i> Preview
                         </button>
                         <button type="submit" class="btn" style="background: var(--growth-green); color: white;">
-                            <i class="fas fa-magic"></i> Generate JSON
+                            <i class="fas fa-paper-plane"></i> Publish Post
                         </button>
                         <button type="button" class="btn btn-secondary" onclick="clearForm()">
                             <i class="fas fa-trash"></i> Clear
@@ -267,8 +267,7 @@
             <div class="tab-content" id="exportTab">
                 <div class="instructions">
                     <h4><i class="fas fa-download"></i> Complete Blog Data</h4>
-                    <p>This is your complete <code>blog-data.json</code> file content. Copy this and save it to replace
-                        your current file.</p>
+                    <p>Use this export as a backup or to move your database content to another environment.</p>
                 </div>
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                     <button class="btn" onclick="copyFullJSON()" style="background: var(--growth-green); color: white;">

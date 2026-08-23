@@ -1,5 +1,5 @@
 // LegitWays Dynamic Admin Panel
-// Full CRUD operations with IndexedDB - no backend required
+// Full CRUD operations through the Node.js API
 
 // ==================== CONFIGURATION ====================
 // IMPORTANT: Change this password before deploying!
@@ -247,7 +247,7 @@ function clearForm() {
     // Update UI
     const submitBtn = document.querySelector('#postForm button[type="submit"]');
     if (submitBtn) {
-        submitBtn.innerHTML = '<i class="fas fa-magic"></i> Save Post';
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish Post';
     }
 }
 
