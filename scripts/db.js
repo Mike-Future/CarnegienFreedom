@@ -1,4 +1,26 @@
 ﻿const API_ROOT = '/api';
+let apiAvailable = false;
+let localDataPromise = null;
+
+function loadLocalData() {
+    if (!localDataPromise) {
+        localDataPromise = fetch('data/blog-data.json').then(response => {
+            if (!response.ok) {
+                throw new Error(`Unable to load local blog data: ${response.status}`);
+            }
+            return response.json();
+        });
+    }
+    return localDataPromise;
+}
+
+function localPosts() {
+    return loadLocalData().then(data => data.posts || []);
+}
+
+function localCategories() {
+    return loadLocalData().then(data => data.categories || []);
+}
 
 async function request(path, options = {}) {
     const response = await fetch(`${API_ROOT}${path}`, {
@@ -22,7 +44,13 @@ async function request(path, options = {}) {
 }
 
 async function initDB() {
-    await request('/health');
+    try {
+        await request('/health');
+        apiAvailable = true;
+    } catch (error) {
+        apiAvailable = false;
+        console.warn('Blog API unavailable; using local blog data for read operations.', error);
+    }
 
     return {
         getAllPosts,
@@ -44,25 +72,36 @@ async function initDB() {
 }
 
 async function getAllPosts() {
-    return request('/posts');
+    return apiAvailable ? request('/posts') : localPosts();
 }
 
 async function getPostBySlug(slug) {
-    return request(`/posts/slug/${encodeURIComponent(slug)}`);
+    if (apiAvailable) {
+        return request(`/posts/slug/${encodeURIComponent(slug)}`);
+    }
+    const posts = await localPosts();
+    return posts.find(post => post.slug === slug) || null;
 }
 
 async function getPostsByCategory(category) {
     if (!category || category === 'all') {
         return getAllPosts();
     }
-    return request(`/posts/category/${encodeURIComponent(category)}`);
+    return apiAvailable
+        ? request(`/posts/category/${encodeURIComponent(category)}`)
+        : localPosts().then(posts => posts.filter(post => post.category === category));
 }
 
 async function getFeaturedPosts() {
-    return request('/posts/featured');
+    return apiAvailable
+        ? request('/posts/featured')
+        : localPosts().then(posts => posts.filter(post => post.featured));
 }
 
 async function savePost(post) {
+    if (!apiAvailable) {
+        throw new Error('The blog database is unavailable. Start the Node.js server and PostgreSQL before publishing.');
+    }
     return request('/posts', {
         method: 'POST',
         body: JSON.stringify(post)
@@ -70,6 +109,9 @@ async function savePost(post) {
 }
 
 async function deletePost(id) {
+    if (!apiAvailable) {
+        throw new Error('The blog database is unavailable. Start the Node.js server and PostgreSQL before deleting posts.');
+    }
     return request(`/posts/${encodeURIComponent(id)}`, {
         method: 'DELETE'
     });
@@ -80,11 +122,17 @@ async function searchPosts(query) {
     if (!q) {
         return getAllPosts();
     }
-    return request(`/posts/search?q=${encodeURIComponent(q)}`);
+    if (apiAvailable) {
+        return request(`/posts/search?q=${encodeURIComponent(q)}`);
+    }
+    const posts = await localPosts();
+    const searchTerm = q.toLowerCase();
+    return posts.filter(post => [post.title, post.excerpt, post.categoryLabel, ...(post.tags || [])]
+        .some(value => String(value || '').toLowerCase().includes(searchTerm)));
 }
 
 async function getAllCategories() {
-    return request('/categories');
+    return apiAvailable ? request('/categories') : localCategories();
 }
 
 async function saveCategory(category) {
@@ -116,7 +164,9 @@ async function saveSetting(key, value) {
 }
 
 async function exportAllData() {
-    return request('/data/export');
+    return apiAvailable
+        ? request('/data/export')
+        : loadLocalData();
 }
 
 async function importData(data) {
