@@ -5,6 +5,18 @@ function toggleMobileMenu() {
     menu.classList.toggle('active');
 }
 
+// Hidden admin access: Ctrl+Shift+A on Windows/Linux, Cmd+Shift+A on macOS.
+document.addEventListener('keydown', (event) => {
+    const target = event.target;
+    const isFormField = target instanceof HTMLElement &&
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+
+    if (!isFormField && event.shiftKey && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
+        event.preventDefault();
+        window.location.href = 'admin.html';
+    }
+});
+
 // Smooth Scroll for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
