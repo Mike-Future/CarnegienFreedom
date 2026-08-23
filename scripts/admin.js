@@ -23,6 +23,10 @@ async function authRequest(path, body) {
 // ==================== AUTHENTICATION ====================
 
 async function checkAuth() {
+    if (localStorage.getItem('legitways_logged_out') === 'true') {
+        return;
+    }
+
     try {
         const response = await fetch('/api/auth/session', { credentials: 'same-origin' });
         if (response.ok) {
@@ -51,6 +55,7 @@ async function handleLogin(e) {
             email,
             password
         });
+        localStorage.removeItem('legitways_logged_out');
         await initAdmin();
     } catch (error) {
         document.getElementById('errorText').textContent = error.message;
@@ -79,8 +84,13 @@ async function initAdmin() {
     await refreshData();
 }
 
-function logout() {
-    authRequest('/api/auth/logout', {}).finally(() => location.reload());
+async function logout() {
+    localStorage.setItem('legitways_logged_out', 'true');
+    try {
+        await authRequest('/api/auth/logout', {});
+    } finally {
+        location.reload();
+    }
 }
 
 function toggleAuthMode() {

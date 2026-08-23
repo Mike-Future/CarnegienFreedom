@@ -306,10 +306,14 @@ app.get('/api/auth/session', requireAdmin, (req, res) => {
 
 app.post('/api/auth/logout', async (req, res) => {
     const token = getSessionToken(req);
-    if (token && databaseAvailable) {
-        await pool.query('DELETE FROM admin_sessions WHERE token_hash = $1', [hashSessionToken(token)]);
+    try {
+        if (token && databaseAvailable) {
+            await pool.query('DELETE FROM admin_sessions WHERE token_hash = $1', [hashSessionToken(token)]);
+        }
+    } catch (error) {
+        console.error('Admin logout cleanup failed:', error.message);
     }
-    res.setHeader('Set-Cookie', 'legitways_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
+    res.setHeader('Set-Cookie', 'legitways_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
     res.status(204).end();
 });
 
