@@ -113,16 +113,22 @@ function toggleAuthMode() {
 
 function togglePassword() {
     const input = document.getElementById('adminPassword');
-    const icon = document.querySelector('.toggle-password');
+    const toggle = document.getElementById('togglePassword');
+    const icon = toggle.querySelector('i');
+    const isVisible = input.type === 'text';
 
-    if (input.type === 'password') {
+    if (isVisible) {
+        input.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye');
+        toggle.setAttribute('aria-label', 'Show password');
+        toggle.title = 'Show password';
+    } else {
         input.type = 'text';
         icon.classList.remove('fa-eye');
         icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
+        toggle.setAttribute('aria-label', 'Hide password');
+        toggle.title = 'Hide password';
     }
 }
 
@@ -536,6 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup login form
     document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
     document.getElementById('authSwitch')?.addEventListener('click', toggleAuthMode);
+    document.getElementById('togglePassword')?.addEventListener('click', togglePassword);
 
     // Setup file import
     const fileInput = document.getElementById('importFile');
