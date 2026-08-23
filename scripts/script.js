@@ -5,6 +5,25 @@ function toggleMobileMenu() {
     menu.classList.toggle('active');
 }
 
+function openAdmin(event) {
+    event?.preventDefault();
+    document.getElementById('adminModal').classList.add('show');
+    document.getElementById('adminModal').setAttribute('aria-hidden', 'false');
+    document.body.classList.add('admin-open');
+}
+
+function closeAdmin() {
+    document.getElementById('adminModal').classList.remove('show');
+    document.getElementById('adminModal').setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('admin-open');
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeAdmin();
+    }
+});
+
 // Smooth Scroll for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {

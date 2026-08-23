@@ -26,7 +26,12 @@ body {
     overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
     line-height: 1.2;
@@ -136,6 +141,72 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
 }
 
+.admin-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-size: 0.9rem;
+}
+
+.admin-link i {
+    margin-right: 0.3rem;
+}
+
+.admin-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(4, 20, 36, 0.82);
+    z-index: 2000;
+}
+
+.admin-modal.show {
+    display: flex;
+}
+
+.admin-modal-panel {
+    width: min(1200px, 100%);
+    height: min(92vh, 900px);
+    background: var(--knowledge-white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+.admin-modal-header {
+    height: 58px;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--deep-trust-blue);
+    color: white;
+}
+
+.admin-modal-header h2 {
+    font-size: 1rem;
+}
+
+.admin-modal-close {
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.admin-frame {
+    width: 100%;
+    height: calc(100% - 58px);
+    border: 0;
+}
+
+.admin-open {
+    overflow: hidden;
+}
+
 /* ==================== HERO SECTION ==================== */
 .hero {
     min-height: 100vh;
@@ -179,6 +250,7 @@ h1, h2, h3, h4, h5, h6 {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -305,8 +377,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
 }
 
 .hero-image-container {
@@ -350,8 +429,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes floatCard {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .floating-card i {
@@ -919,6 +1005,7 @@ footer {
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 968px) {
+
     .hero-container,
     .lead-magnet-content {
         grid-template-columns: 1fr;

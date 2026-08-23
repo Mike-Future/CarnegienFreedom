@@ -28,6 +28,8 @@
                 <li><a href="#learn">Learn</a></li>
                 <li><a href="#opportunities">Opportunities</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li><a href="#admin" class="admin-link" onclick="openAdmin(event)"><i class="fas fa-lock"></i> Admin</a>
+                </li>
             </ul>
             <a href="#guide" class="nav-cta">Get Free Guide</a>
             <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
@@ -42,6 +44,7 @@
             <li><a href="#learn" onclick="toggleMobileMenu()">Learn</a></li>
             <li><a href="#opportunities" onclick="toggleMobileMenu()">Opportunities</a></li>
             <li><a href="#contact" onclick="toggleMobileMenu()">Contact</a></li>
+            <li><a href="#admin" onclick="openAdmin(event)"><i class="fas fa-lock"></i> Admin</a></li>
             <li><a href="#guide" class="nav-cta" onclick="toggleMobileMenu()">Get Free Guide</a></li>
         </ul>
     </div>
@@ -360,6 +363,18 @@
             </div>
         </div>
     </footer>
+
+    <div class="admin-modal" id="adminModal" aria-hidden="true" role="dialog" aria-labelledby="adminModalTitle">
+        <div class="admin-modal-panel">
+            <div class="admin-modal-header">
+                <h2 id="adminModalTitle"><i class="fas fa-lock"></i> LegitWays Admin</h2>
+                <button type="button" class="admin-modal-close" onclick="closeAdmin()" aria-label="Close admin panel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <iframe src="admin.html" title="LegitWays admin panel" class="admin-frame"></iframe>
+        </div>
+    </div>
 
     <script src="scripts/script.js"></script>
 </body>
