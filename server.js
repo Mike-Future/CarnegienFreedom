@@ -41,6 +41,30 @@ function normalizePost(row) {
     };
 }
 
+async function createBootstrapAdmin() {
+    const username = String(process.env.ADMIN_BOOTSTRAP_USERNAME || '').trim();
+    const email = String(process.env.ADMIN_BOOTSTRAP_EMAIL || '').trim().toLowerCase();
+    const password = String(process.env.ADMIN_BOOTSTRAP_PASSWORD || '');
+
+    if (!username || !/^\S+@\S+\.\S+$/.test(email) || password.length < 8) {
+        return;
+    }
+
+    const { rows } = await pool.query('SELECT 1 FROM admin_users LIMIT 1');
+    if (rows.length > 0) {
+        return;
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    await pool.query(
+        `INSERT INTO admin_users (username, email, password_hash)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (email) DO NOTHING`,
+        [username, email, passwordHash]
+    );
+    console.log(`Created bootstrap admin account for ${email}`);
+}
+
 async function initDatabase() {
     await pool.query('CREATE EXTENSION IF NOT EXISTS pgcrypto;');
 
@@ -99,6 +123,7 @@ async function initDatabase() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(featured);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);`);
 
+    await createBootstrapAdmin();
     await loadDefaultDataIfEmpty();
     databaseAvailable = true;
 }
