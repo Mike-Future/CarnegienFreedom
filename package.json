@@ -4,7 +4,9 @@
   "description": "LegitWays blog with a Postgres-backed dynamic API",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "db:start": "docker compose up -d database",
+    "db:stop": "docker compose down"
   },
   "dependencies": {
     "cors": "^2.8.5",

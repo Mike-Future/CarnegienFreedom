@@ -1,0 +1,21 @@
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: legitways-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: legitways
+      POSTGRES_USER: legitways
+      POSTGRES_PASSWORD: legitways_local_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - legitways-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U legitways -d legitways"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  legitways-postgres-data:
