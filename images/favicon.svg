@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 286 286">
+  <defs>
+    <clipPath id="rounded-corners">
+      <rect width="286" height="286" rx="48" ry="48" />
+    </clipPath>
+  </defs>
+  <image href="Logo.png" width="286" height="286" clip-path="url(#rounded-corners)" />
+</svg>
