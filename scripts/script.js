@@ -1,4 +1,4 @@
-// LegitWays.cc - Main JavaScript
+// CarnegienFreedom.cc - Main JavaScript
 // Mobile Menu Toggle
 function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');

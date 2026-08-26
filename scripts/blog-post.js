@@ -1,4 +1,4 @@
-// LegitWays Dynamic Blog Post Viewer
+// CarnegienFreedom Dynamic Blog Post Viewer
 // Loads specific article from IndexedDB based on URL parameter
 
 let db = null;
@@ -57,7 +57,7 @@ async function loadArticle() {
         renderRelatedArticles();
 
         // Update page title
-        document.title = `${currentPost.title} | LegitWays Blog`;
+        document.title = `${currentPost.title} | CarnegienFreedom Blog`;
 
         // Update meta description
         const metaDesc = document.querySelector('meta[name="description"]');

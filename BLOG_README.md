@@ -1,4 +1,4 @@
-# LegitWays Dynamic Blog System
+# CarnegienFreedom Dynamic Blog System
 
 ## Overview
 
@@ -174,7 +174,7 @@ No server-side processing required!
 5. **Passive Income Myths Debunked**
 6. **How to Evaluate Online Courses**
 
-All posts align with LegitWays brand: education-first, scam-aware, realistic expectations.
+All posts align with CarnegienFreedom brand: education-first, scam-aware, realistic expectations.
 
 ## Next Steps
 

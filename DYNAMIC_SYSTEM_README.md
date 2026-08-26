@@ -1,4 +1,4 @@
-# LegitWays Dynamic Website System
+# CarnegienFreedom Dynamic Website System
 
 ## 🚀 Overview
 
@@ -17,7 +17,7 @@ This is a **fully dynamic, client-side website** with a complete Content Managem
 ## 📁 File Structure
 
 ```
-legitways/
+CarnegienFreedom/
 ├── index.html              # Main website (static)
 ├── styles.css              # All styles
 ├── script.js               # Main site JavaScript

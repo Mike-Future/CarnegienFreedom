@@ -1,4 +1,4 @@
-// LegitWays Dynamic Blog System
+// CarnegienFreedom Dynamic Blog System
 // Uses IndexedDB for real-time content management
 
 let db = null;

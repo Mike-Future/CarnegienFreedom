@@ -1,4 +1,4 @@
-// LegitWays Dynamic Admin Panel
+// CarnegienFreedom Dynamic Admin Panel
 // Full CRUD operations through the Node.js API
 
 let db = null;
