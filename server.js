@@ -354,6 +354,11 @@ app.post('/api/guide', async (req, res) => {
 
     try {
         const smtpPort = Number(process.env.SMTP_PORT || 587);
+        if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
+            return res.status(503).json({ error: 'Email delivery is misconfigured' });
+        }
+        await fs.access(GUIDE_FILE);
+
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST,
             port: smtpPort,
@@ -378,8 +383,17 @@ app.post('/api/guide', async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Guide email failed:', error.message);
-        res.status(500).json({ error: 'Unable to send the guide right now' });
+        console.error('Guide email failed:', {
+            code: error.code,
+            responseCode: error.responseCode,
+            message: error.message
+        });
+
+        if (error.code === 'ENOENT') {
+            return res.status(503).json({ error: 'The guide file is unavailable' });
+        }
+
+        res.status(502).json({ error: 'The email provider rejected the guide request' });
     }
 });
 
