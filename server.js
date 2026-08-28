@@ -358,19 +358,22 @@ app.post('/api/guide', async (req, res) => {
             return res.status(503).json({ error: 'Email delivery is misconfigured' });
         }
         await fs.access(GUIDE_FILE);
+        const smtpPassword = String(process.env.SMTP_PASSWORD).replace(/\s+/g, '');
+        const smtpUser = String(process.env.SMTP_USER).trim();
 
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST,
             port: smtpPort,
             secure: smtpPort === 465,
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD
+                user: smtpUser,
+                pass: smtpPassword
             }
         });
 
         await transporter.sendMail({
-            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            from: process.env.SMTP_FROM || smtpUser,
+            envelope: { from: smtpUser, to: email },
             to: email,
             subject: 'Your LegitWays educational guide',
             text: 'Thank you for requesting the LegitWays educational guide. It is attached to this email.',
