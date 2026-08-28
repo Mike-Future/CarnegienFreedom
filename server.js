@@ -350,7 +350,13 @@ app.post('/api/guide', async (req, res) => {
         return res.status(400).json({ error: 'A valid email address is required' });
     }
 
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+    const smtpHost = String(process.env.SMTP_HOST || '').trim();
+    const smtpUser = String(process.env.SMTP_USER || '').trim();
+    const smtpPassword = String(process.env.SMTP_PASSWORD || '').replace(/\s+/g, '');
+    const smtpFrom = String(process.env.SMTP_FROM || smtpUser).trim();
+    const smtpSecureSetting = String(process.env.SMTP_SECURE || '').trim().toLowerCase();
+
+    if (!smtpHost || !smtpUser || !smtpPassword) {
         return res.status(503).json({ error: 'Email delivery is not configured' });
     }
 
@@ -359,14 +365,14 @@ app.post('/api/guide', async (req, res) => {
         if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
             return res.status(503).json({ error: 'Email delivery is misconfigured' });
         }
+
+        const smtpSecure = smtpSecureSetting === 'true' || (smtpSecureSetting === '' && smtpPort === 465);
         await fs.access(GUIDE_FILE);
-        const smtpPassword = String(process.env.SMTP_PASSWORD).replace(/\s+/g, '');
-        const smtpUser = String(process.env.SMTP_USER).trim();
 
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
+            host: smtpHost,
             port: smtpPort,
-            secure: smtpPort === 465,
+            secure: smtpSecure,
             auth: {
                 user: smtpUser,
                 pass: smtpPassword
@@ -374,7 +380,7 @@ app.post('/api/guide', async (req, res) => {
         });
 
         await transporter.sendMail({
-            from: process.env.SMTP_FROM || smtpUser,
+            from: smtpFrom,
             envelope: { from: smtpUser, to: email },
             to: email,
             subject: 'Your LegitWays educational guide',
