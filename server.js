@@ -37,7 +37,8 @@ function normalizePost(row) {
         featured: row.featured,
         image: row.image,
         tags: row.tags || [],
-        content: row.content
+        content: row.content,
+        sourceDocumentName: row.source_document_name || null
     };
 }
 
@@ -122,6 +123,7 @@ async function initDatabase() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(featured);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);`);
+    await pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS source_document_name TEXT;`);
 
     await createBootstrapAdmin();
     await loadDefaultDataIfEmpty();
@@ -447,8 +449,8 @@ app.post('/api/posts', requireAdmin, async (req, res) => {
     }
 
     await pool.query(
-        `INSERT INTO posts (id, slug, title, excerpt, category, categoryLabel, author, date, readTime, featured, image, tags, content)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+        `INSERT INTO posts (id, slug, title, excerpt, category, categoryLabel, author, date, readTime, featured, image, tags, content, source_document_name)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
          ON CONFLICT (id) DO UPDATE SET
            slug = EXCLUDED.slug,
            title = EXCLUDED.title,
@@ -461,7 +463,8 @@ app.post('/api/posts', requireAdmin, async (req, res) => {
            featured = EXCLUDED.featured,
            image = EXCLUDED.image,
            tags = EXCLUDED.tags,
-           content = EXCLUDED.content;`,
+           content = EXCLUDED.content,
+           source_document_name = EXCLUDED.source_document_name;`,
         [
             post.id,
             post.slug,
@@ -475,7 +478,8 @@ app.post('/api/posts', requireAdmin, async (req, res) => {
             post.featured || false,
             post.image || null,
             JSON.stringify(post.tags || []),
-            post.content || null
+            post.content || null,
+            post.sourceDocumentName || null
         ]
     );
 

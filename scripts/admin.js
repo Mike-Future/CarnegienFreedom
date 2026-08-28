@@ -5,6 +5,7 @@ let db = null;
 let currentPost = null;
 let isEditing = false;
 let registrationMode = false;
+let uploadedDocumentName = '';
 
 async function authRequest(path, body) {
     const response = await fetch(path, {
@@ -185,6 +186,13 @@ document.getElementById('postForm')?.addEventListener('submit', async (e) => {
 async function savePost() {
     showLoading(true);
 
+    const content = document.getElementById('postContent').value;
+    if (!content.trim()) {
+        alert('Please upload an article document before publishing.');
+        showLoading(false);
+        return;
+    }
+
     const postData = {
         id: isEditing && currentPost ? currentPost.id : Date.now().toString(),
         slug: document.getElementById('postSlug').value,
@@ -199,7 +207,8 @@ async function savePost() {
         image: document.getElementById('postImage').value ||
             'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80',
         tags: document.getElementById('postTags').value.split(',').map(t => t.trim()).filter(t => t),
-        content: document.getElementById('postContent').value
+        content,
+        sourceDocumentName: uploadedDocumentName || (isEditing && currentPost ? currentPost.sourceDocumentName : null)
     };
 
     try {
@@ -266,6 +275,47 @@ function previewPost() {
     document.getElementById('previewSection').scrollIntoView({ behavior: 'smooth' });
 }
 
+async function loadArticleDocument(file) {
+    if (!file) return;
+
+    const status = document.getElementById('documentStatus');
+    status.textContent = `Reading ${file.name}...`;
+
+    try {
+        let content;
+        if (file.name.toLowerCase().endsWith('.docx')) {
+            if (!window.mammoth) {
+                throw new Error('The Word document reader is unavailable. Refresh the page and try again.');
+            }
+            const result = await window.mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+            content = result.value;
+        } else {
+            const text = await file.text();
+            content = text.split(/\r?\n\s*\r?\n/)
+                .map(paragraph => paragraph.trim())
+                .filter(Boolean)
+                .map(paragraph => `<p>${escapeDocumentText(paragraph).replace(/\r?\n/g, '<br>')}</p>`)
+                .join('');
+        }
+
+        if (!content.trim()) {
+            throw new Error('The selected document is empty.');
+        }
+
+        document.getElementById('postContent').value = content;
+        uploadedDocumentName = file.name;
+        status.textContent = `${file.name} loaded successfully.`;
+        if (!document.getElementById('postTitle').value) {
+            document.getElementById('postTitle').value = file.name.replace(/\.(docx|txt)$/i, '').replace(/[-_]+/g, ' ');
+            document.getElementById('postTitle').dispatchEvent(new Event('input'));
+        }
+    } catch (error) {
+        document.getElementById('documentFile').value = '';
+        status.textContent = 'No document selected.';
+        alert(error.message || 'Unable to read the selected document.');
+    }
+}
+
 function closePreview() {
     document.getElementById('previewSection').style.display = 'none';
 }
@@ -276,6 +326,9 @@ function clearForm() {
     document.getElementById('previewSection').style.display = 'none';
     currentPost = null;
     isEditing = false;
+    uploadedDocumentName = '';
+    document.getElementById('documentFile').required = true;
+    document.getElementById('documentStatus').textContent = 'No document selected.';
 
     // Update UI
     const submitBtn = document.querySelector('#postForm button[type="submit"]');
@@ -351,6 +404,11 @@ async function editPost(id) {
     document.getElementById('postImage').value = post.image || '';
     document.getElementById('postExcerpt').value = post.excerpt;
     document.getElementById('postContent').value = post.content;
+    uploadedDocumentName = post.sourceDocumentName || '';
+    document.getElementById('documentFile').required = false;
+    document.getElementById('documentStatus').textContent = post.sourceDocumentName
+        ? `Stored document: ${post.sourceDocumentName}`
+        : 'Existing article content loaded. Upload a document to replace it.';
     document.getElementById('postTags').value = post.tags.join(', ');
     document.getElementById('postFeatured').checked = post.featured;
 
@@ -434,7 +492,7 @@ ${articles || '<p>No published posts available.</p>'}
 
 async function updateDocumentStatus() {
     const posts = await db.getAllPosts();
-    const output = document.getElementById('documentStatus');
+    const output = document.getElementById('exportDocumentStatus');
     if (output) {
         output.textContent = `${posts.length} published ${posts.length === 1 ? 'post' : 'posts'} ready to download as a document.`;
     }
@@ -536,6 +594,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
     document.getElementById('authSwitch')?.addEventListener('click', toggleAuthMode);
     document.getElementById('togglePassword')?.addEventListener('click', togglePassword);
+
+    document.getElementById('documentFile')?.addEventListener('change', (event) => {
+        loadArticleDocument(event.target.files[0]);
+    });
 
     // Add animations
     const style = document.createElement('style');
