@@ -68,7 +68,17 @@ async function handleSubmit(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
         });
-        const result = await response.json();
+        const responseText = await response.text();
+        let result = {};
+
+        if (responseText) {
+            try {
+                result = JSON.parse(responseText);
+            } catch {
+                throw new Error(`The email service returned an invalid response (${response.status})`);
+            }
+        }
+
         if (!response.ok) {
             throw new Error(result.error || 'Unable to send the guide');
         }
