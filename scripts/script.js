@@ -72,10 +72,15 @@ async function handleSubmit(e) {
         let result = {};
 
         if (responseText) {
-            try {
-                result = JSON.parse(responseText);
-            } catch {
-                throw new Error(`The email service returned an invalid response (${response.status})`);
+            const trimmed = responseText.trim();
+            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                try {
+                    result = JSON.parse(trimmed);
+                } catch {
+                    throw new Error(`The email service returned an unexpected response (${response.status}). Please try again in a moment.`);
+                }
+            } else {
+                throw new Error(trimmed || `The email service returned an unexpected response (${response.status}). Please try again in a moment.`);
             }
         }
 
