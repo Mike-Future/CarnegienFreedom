@@ -83,9 +83,9 @@
                     <i class="fas fa-external-link-alt"></i>
                     View Blog
                 </a>
-                <button class="btn btn-secondary" onclick="copyJSON()">
-                    <i class="fas fa-copy"></i>
-                    Copy JSON
+                <button class="btn btn-secondary" onclick="downloadDocument()">
+                    <i class="fas fa-file-word"></i>
+                    Download Document
                 </button>
                 <button class="btn btn-danger" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
@@ -125,7 +125,7 @@
                     <i class="fas fa-list"></i> Manage Posts
                 </button>
                 <button class="tab-btn" onclick="switchTab('export')">
-                    <i class="fas fa-code"></i> Export JSON
+                    <i class="fas fa-file-word"></i> Export Document
                 </button>
             </div>
 
@@ -244,31 +244,6 @@
                     </div>
                 </div>
 
-                <!-- JSON Output -->
-                <div class="preview-section" id="jsonSection" style="display: none;">
-                    <div class="preview-header">
-                        <h3>Generated JSON</h3>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-secondary" onclick="copyJSON()">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                            <button class="btn btn-secondary" onclick="closeJSON()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="json-export" id="jsonOutput"></div>
-                    <div class="instructions" style="margin-top: 1rem;">
-                        <p><strong>Next steps:</strong></p>
-                        <ol>
-                            <li>Copy this JSON (button above)</li>
-                            <li>Open your <code>blog-data.json</code> file</li>
-                            <li>Add a comma after the last post in the "posts" array</li>
-                            <li>Paste this JSON as the new last item</li>
-                            <li>Save and upload the file to your server</li>
-                        </ol>
-                    </div>
-                </div>
             </div>
 
             <!-- Manage Posts Tab -->
@@ -278,21 +253,19 @@
                 </div>
             </div>
 
-            <!-- Export JSON Tab -->
+            <!-- Export Document Tab -->
             <div class="tab-content" id="exportTab">
                 <div class="instructions">
-                    <h4><i class="fas fa-download"></i> Complete Blog Data</h4>
-                    <p>Use this export as a backup or to move your database content to another environment.</p>
+                    <h4><i class="fas fa-file-word"></i> Blog Document</h4>
+                    <p>Download all published posts as a Word-compatible document for reading, editing, or sharing.</p>
                 </div>
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <button class="btn" onclick="copyFullJSON()" style="background: var(--growth-green); color: white;">
-                        <i class="fas fa-copy"></i> Copy Full JSON
-                    </button>
-                    <button class="btn btn-secondary" onclick="downloadJSON()">
-                        <i class="fas fa-download"></i> Download File
+                    <button class="btn" onclick="downloadDocument()"
+                        style="background: var(--opportunity-gold); color: white;">
+                        <i class="fas fa-file-word"></i> Download Document
                     </button>
                 </div>
-                <div class="json-export" id="fullJsonOutput"></div>
+                <div class="preview-content" id="documentStatus">The document will include all published posts.</div>
             </div>
         </div>
     </div>

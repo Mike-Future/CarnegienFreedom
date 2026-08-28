@@ -137,7 +137,7 @@ function togglePassword() {
 async function refreshData() {
     await updateStats();
     await renderPostsList();
-    await updateFullJSON();
+    await updateDocumentStatus();
 }
 
 async function updateStats() {
@@ -394,74 +394,67 @@ async function deletePost(id) {
     showLoading(false);
 }
 
-// ==================== IMPORT/EXPORT ====================
+// ==================== DOCUMENT EXPORT ====================
 
-async function updateFullJSON() {
-    const data = await db.exportAllData();
-    const output = document.getElementById('fullJsonOutput');
+function escapeDocumentText(value) {
+    return String(value || '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[character]));
+}
+
+function buildDocumentHTML(posts) {
+    const articles = posts.map(post => `
+        <article class="post">
+            <h1>${escapeDocumentText(post.title)}</h1>
+            <p class="meta">${escapeDocumentText(post.categoryLabel)} | By ${escapeDocumentText(post.author)} | ${escapeDocumentText(formatDate(post.date))}</p>
+            <p class="excerpt"><strong>${escapeDocumentText(post.excerpt)}</strong></p>
+            <div>${post.content || ''}</div>
+        </article>
+    `).join('');
+
+    return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>CarnegienFreedom Blog</title>
+<style>
+body { font-family: Arial, sans-serif; color: #172033; line-height: 1.6; margin: 40px; }
+h1 { color: #071A3D; font-size: 24px; margin-bottom: 8px; }
+.cover { border-bottom: 4px solid #D9A441; margin-bottom: 32px; padding-bottom: 16px; }
+.cover h1 { font-size: 32px; }
+.meta { color: #5E6B80; font-size: 13px; }
+.excerpt { color: #334155; }
+.post { border-bottom: 1px solid #D7E0EC; margin-bottom: 32px; padding-bottom: 24px; }
+</style></head><body>
+<header class="cover"><h1>CarnegienFreedom Blog</h1><p>Published articles</p></header>
+${articles || '<p>No published posts available.</p>'}
+</body></html>`;
+}
+
+async function updateDocumentStatus() {
+    const posts = await db.getAllPosts();
+    const output = document.getElementById('documentStatus');
     if (output) {
-        output.textContent = JSON.stringify(data, null, 2);
+        output.textContent = `${posts.length} published ${posts.length === 1 ? 'post' : 'posts'} ready to download as a document.`;
     }
 }
 
-async function copyFullJSON() {
-    const data = await db.exportAllData();
-    const json = JSON.stringify(data, null, 2);
-
-    navigator.clipboard.writeText(json).then(() => {
-        showNotification('Full blog data copied to clipboard!');
-    });
-}
-
-async function downloadJSON() {
-    const data = await db.exportAllData();
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+async function downloadDocument() {
+    const posts = await db.getAllPosts();
+    const documentHTML = buildDocumentHTML(posts);
+    const blob = new Blob([documentHTML], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'blog-data.json';
+    a.download = 'carnegienfreedom-blog.doc';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showNotification('blog-data.json downloaded!');
-}
-
-// Import JSON file
-async function importJSONFile(file) {
-    if (!file) return;
-
-    showLoading(true);
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-        try {
-            const data = JSON.parse(event.target.result);
-
-            if (!confirm(`This will import ${data.posts?.length || 0} posts and ${data.categories?.length || 0} categories. Existing data may be overwritten. Continue?`)) {
-                showLoading(false);
-                return;
-            }
-
-            await db.importData(data);
-            await refreshData();
-            showNotification('Data imported successfully!');
-        } catch (error) {
-            console.error('Import error:', error);
-            alert('Error importing data. Please check the file format.');
-        }
-        showLoading(false);
-    };
-
-    reader.onerror = () => {
-        alert('Error reading file');
-        showLoading(false);
-    };
-
-    reader.readAsText(file);
+    showNotification('Blog document downloaded.');
 }
 
 // ==================== UI UTILITIES ====================
@@ -488,7 +481,7 @@ function switchTab(tabName) {
     if (tabName === 'manage') {
         renderPostsList();
     } else if (tabName === 'export') {
-        updateFullJSON();
+        updateDocumentStatus();
     }
 }
 
@@ -544,12 +537,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('authSwitch')?.addEventListener('click', toggleAuthMode);
     document.getElementById('togglePassword')?.addEventListener('click', togglePassword);
 
-    // Setup file import
-    const fileInput = document.getElementById('importFile');
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => importJSONFile(e.target.files[0]));
-    }
-
     // Add animations
     const style = document.createElement('style');
     style.textContent = `
@@ -580,5 +567,4 @@ window.clearForm = clearForm;
 window.viewPost = viewPost;
 window.editPost = editPost;
 window.deletePost = deletePost;
-window.copyFullJSON = copyFullJSON;
-window.downloadJSON = downloadJSON;
+window.downloadDocument = downloadDocument;
