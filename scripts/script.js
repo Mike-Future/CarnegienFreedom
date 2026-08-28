@@ -97,10 +97,10 @@ async function handleSubmit(e) {
 window.addEventListener('scroll', () => {
     const navbar = document.querySelector('.navbar');
     if (window.scrollY > 50) {
-        navbar.style.background = 'rgba(11, 42, 74, 0.98)';
+        navbar.style.background = 'rgba(7, 26, 61, 0.98)';
         navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
     } else {
-        navbar.style.background = 'rgba(11, 42, 74, 0.95)';
+        navbar.style.background = 'rgba(7, 26, 61, 0.95)';
         navbar.style.boxShadow = 'none';
     }
 });

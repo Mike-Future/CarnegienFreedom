@@ -1,15 +1,16 @@
 /* CarnegienFreedom.cc - Brand Stylesheet */
-/* Brand Colors: Deep Trust Blue #0B2A4A, Growth Green #3CB54A */
+/* Brand Colors: Navy #071A3D, Royal Blue #0B3B82, Gold #D9A441 */
 
 :root {
-    --deep-trust-blue: #0B2A4A;
-    --growth-green: #3CB54A;
+    --deep-trust-blue: #071A3D;
+    --growth-green: #2EAF5D;
     --knowledge-white: #FFFFFF;
-    --soft-sky-blue: #4FA3D1;
-    --opportunity-gold: #F2C94C;
-    --text-dark: #1a1a1a;
-    --text-muted: #6b7280;
-    --bg-light: #f8fafc;
+    --soft-sky-blue: #4C8DCE;
+    --opportunity-gold: #D9A441;
+    --text-dark: #172033;
+    --text-muted: #5E6B80;
+    --bg-light: #F4F7FB;
+    --surface-blue: #EAF1FA;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -42,7 +43,7 @@ h6 {
     position: fixed;
     top: 0;
     width: 100%;
-    background: rgba(11, 42, 74, 0.95);
+    background: rgba(7, 26, 61, 0.95);
     backdrop-filter: blur(10px);
     z-index: 1000;
     padding: 1rem 0;
@@ -69,7 +70,7 @@ h6 {
     width: 52px;
     height: 52px;
     flex: 0 0 52px;
-    background: var(--deep-trust-blue);
+    background: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -81,7 +82,7 @@ h6 {
 .logo-icon img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .logo-text {
@@ -112,7 +113,7 @@ h6 {
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--growth-green);
+    background: var(--opportunity-gold);
     transition: var(--transition-smooth);
 }
 
@@ -125,14 +126,14 @@ h6 {
 }
 
 .nav-cta {
-    background: var(--growth-green);
+    background: var(--opportunity-gold);
     color: white;
     padding: 0.75rem 1.5rem;
     border-radius: 50px;
     text-decoration: none;
     font-weight: 600;
     transition: var(--transition-smooth);
-    border: 2px solid var(--growth-green);
+    border: 2px solid var(--opportunity-gold);
 }
 
 .nav-cta:hover {
@@ -150,7 +151,7 @@ h6 {
 /* ==================== HERO SECTION ==================== */
 .hero {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, #1a4a6e 100%);
+    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, #0B3B82 100%);
     display: flex;
     align-items: center;
     position: relative;
@@ -221,7 +222,7 @@ h6 {
 }
 
 .hero h1 span {
-    color: var(--growth-green);
+    color: var(--opportunity-gold);
     position: relative;
 }
 
@@ -232,7 +233,7 @@ h6 {
     left: 0;
     width: 100%;
     height: 8px;
-    background: rgba(60, 181, 74, 0.3);
+    background: rgba(217, 164, 65, 0.32);
     z-index: -1;
 }
 
@@ -251,7 +252,7 @@ h6 {
 }
 
 .btn-primary {
-    background: var(--growth-green);
+    background: var(--opportunity-gold);
     color: white;
     padding: 1rem 2rem;
     border-radius: 50px;
@@ -262,14 +263,14 @@ h6 {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 2px solid var(--growth-green);
-    box-shadow: 0 10px 30px rgba(60, 181, 74, 0.3);
+    border: 2px solid var(--opportunity-gold);
+    box-shadow: 0 10px 30px rgba(217, 164, 65, 0.28);
     cursor: pointer;
 }
 
 .btn-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 20px 40px rgba(60, 181, 74, 0.4);
+    box-shadow: 0 20px 40px rgba(217, 164, 65, 0.38);
 }
 
 .btn-secondary {
@@ -493,13 +494,13 @@ h6 {
     left: 0;
     width: 100%;
     height: 4px;
-    background: var(--growth-green);
+    background: var(--opportunity-gold);
     transform: scaleX(0);
     transition: var(--transition-smooth);
 }
 
 .feature-card:hover {
-    border-color: var(--growth-green);
+    border-color: var(--opportunity-gold);
     transform: translateY(-5px);
 }
 
@@ -539,7 +540,7 @@ h6 {
     right: -20%;
     width: 600px;
     height: 600px;
-    background: rgba(60, 181, 74, 0.1);
+    background: rgba(217, 164, 65, 0.12);
     border-radius: 50%;
 }
 
@@ -567,7 +568,7 @@ h6 {
 .step-number {
     width: 80px;
     height: 80px;
-    background: var(--growth-green);
+    background: var(--opportunity-gold);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -575,7 +576,7 @@ h6 {
     font-size: 2rem;
     font-weight: 700;
     margin: 0 auto 1.5rem;
-    box-shadow: 0 10px 30px rgba(60, 181, 74, 0.3);
+    box-shadow: 0 10px 30px rgba(217, 164, 65, 0.3);
 }
 
 .step-card h3 {
@@ -697,7 +698,7 @@ h6 {
 /* ==================== LEAD MAGNET SECTION ==================== */
 .lead-magnet {
     padding: 6rem 0;
-    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, #1a4a6e 100%);
+    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, #0B3B82 100%);
     color: white;
     position: relative;
     overflow: hidden;

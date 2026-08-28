@@ -1,6 +1,6 @@
 /* Blog post specific styles */
 .article-header {
-    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, #1a4a6e 100%);
+    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, #0B3B82 100%);
     padding: 8rem 0 4rem;
     color: white;
 }
