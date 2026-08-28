@@ -64,7 +64,7 @@
 .search-box input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.5rem;
-    border: 2px solid #e5e7eb;
+    border: 2px solid #D7E0EC;
     border-radius: 50px;
     font-size: 1rem;
     outline: none;
@@ -117,8 +117,8 @@
 
 .blog-category {
     display: inline-block;
-    background: rgba(60, 181, 74, 0.1);
-    color: var(--growth-green);
+    background: rgba(217, 164, 65, 0.14);
+    color: #8A6215;
     padding: 0.25rem 0.75rem;
     border-radius: 50px;
     font-size: 0.75rem;

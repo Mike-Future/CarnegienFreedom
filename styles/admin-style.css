@@ -137,7 +137,7 @@ body {
 }
 
 .login-btn:hover {
-    background: #2d9439;
+    background: #238649;
     transform: translateY(-2px);
 }
 
@@ -475,7 +475,7 @@ body {
 }
 
 .btn-edit {
-    background: rgba(79, 163, 209, 0.1);
+    background: rgba(76, 141, 206, 0.12);
     color: var(--soft-sky-blue);
 }
 
@@ -549,7 +549,7 @@ body {
 
 /* Instructions */
 .instructions {
-    background: rgba(242, 201, 76, 0.1);
+    background: rgba(217, 164, 65, 0.12);
     border: 2px solid var(--opportunity-gold);
     border-radius: 12px;
     padding: 1.5rem;

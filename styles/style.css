@@ -480,7 +480,7 @@ h6 {
 .feature-card {
     padding: 2.5rem;
     border-radius: 20px;
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    background: linear-gradient(135deg, var(--bg-light) 0%, #ffffff 100%);
     border: 2px solid transparent;
     transition: var(--transition-smooth);
     position: relative;
@@ -596,7 +596,7 @@ h6 {
     right: -50%;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, var(--growth-green), transparent);
+    background: linear-gradient(90deg, var(--opportunity-gold), transparent);
     display: none;
 }
 
