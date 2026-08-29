@@ -141,6 +141,12 @@ h6 {
     color: white;
 }
 
+.nav-cta.is-loading {
+    opacity: 0.9;
+    cursor: wait;
+    pointer-events: none;
+}
+
 .mobile-menu-toggle {
     display: none;
     color: white;

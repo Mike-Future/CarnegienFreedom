@@ -51,15 +51,28 @@ document.querySelectorAll('.fade-in').forEach(el => {
     observer.observe(el);
 });
 
-// Form Handler for Lead Magnet
-function handleSubmit(e) {
-    e.preventDefault();
+function setGuideDownloadState(button, isLoading) {
+    if (!button) return;
 
-    const submitButton = e.target.querySelector('button[type="submit"]');
+    if (isLoading) {
+        button.dataset.originalText = button.dataset.originalText || button.textContent.trim();
+        button.textContent = 'Downloading...';
+        button.setAttribute('aria-busy', 'true');
+        button.classList.add('is-loading');
+        button.style.pointerEvents = 'none';
+    } else {
+        button.textContent = button.dataset.originalText || 'Get Free Guide';
+        button.removeAttribute('aria-busy');
+        button.classList.remove('is-loading');
+        button.style.pointerEvents = '';
+    }
+}
+
+function downloadGuide(triggerButton) {
     const fileUrl = 'assets/legit-ways-guide.pdf';
-
-    submitButton.disabled = true;
-    submitButton.setAttribute('aria-busy', 'true');
+    if (triggerButton) {
+        setGuideDownloadState(triggerButton, true);
+    }
 
     const link = document.createElement('a');
     link.href = fileUrl;
@@ -70,9 +83,25 @@ function handleSubmit(e) {
     link.remove();
 
     setTimeout(() => {
-        e.target.reset();
-        submitButton.disabled = false;
-        submitButton.removeAttribute('aria-busy');
+        if (triggerButton) {
+            setGuideDownloadState(triggerButton, false);
+        }
+    }, 1200);
+}
+
+// Form Handler for Lead Magnet
+function handleSubmit(e) {
+    e.preventDefault();
+
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    setGuideDownloadState(submitButton, true);
+
+    downloadGuide(submitButton);
+
+    setTimeout(() => {
+        if (e.target.reset) {
+            e.target.reset();
+        }
     }, 500);
 }
 

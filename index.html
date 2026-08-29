@@ -30,7 +30,8 @@
                 <li><a href="#opportunities">Opportunities</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
-            <a href="#guide" class="nav-cta">Get Free Guide</a>
+            <a href="#" class="nav-cta" data-guide-button="top"
+                onclick="event.preventDefault(); downloadGuide(this);">Get Free Guide</a>
             <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i>
             </div>
@@ -43,7 +44,8 @@
             <li><a href="#learn" onclick="toggleMobileMenu()">Learn</a></li>
             <li><a href="#opportunities" onclick="toggleMobileMenu()">Opportunities</a></li>
             <li><a href="contact.html" onclick="toggleMobileMenu()">Contact</a></li>
-            <li><a href="#guide" class="nav-cta" onclick="toggleMobileMenu()">Get Free Guide</a></li>
+            <li><a href="#" class="nav-cta" data-guide-button="mobile"
+                    onclick="event.preventDefault(); toggleMobileMenu(); downloadGuide(this);">Get Free Guide</a></li>
         </ul>
     </div>
 
