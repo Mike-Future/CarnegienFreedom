@@ -6,6 +6,7 @@ let currentPost = null;
 let isEditing = false;
 let registrationMode = false;
 let uploadedDocumentName = '';
+let currentAdminUser = null;
 
 async function authRequest(path, body) {
     const response = await fetch(path, {
@@ -73,6 +74,18 @@ async function handleLogin(e) {
         : '<i class="fas fa-sign-in-alt"></i> Log In';
 }
 
+function applyCurrentAdminAuthor() {
+    const authorField = document.getElementById('postAuthor');
+    if (!authorField) return;
+
+    const username = currentAdminUser?.username || authorField.value.trim();
+    if (username) {
+        authorField.value = username;
+        authorField.readOnly = true;
+        authorField.setAttribute('aria-readonly', 'true');
+    }
+}
+
 async function initAdmin() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminPanel').classList.add('show');
@@ -81,15 +94,13 @@ async function initAdmin() {
     const dbAPI = await LegitWaysDB.initDB();
     db = dbAPI;
 
-    // Fetch and set the current admin's username as the default author
+    // Fetch the current admin and lock the author to this username
     try {
         const sessionResponse = await fetch('/api/auth/session', { credentials: 'same-origin' });
         if (sessionResponse.ok) {
             const sessionData = await sessionResponse.json();
-            const authorField = document.getElementById('postAuthor');
-            if (authorField && sessionData.user && sessionData.user.username) {
-                authorField.value = sessionData.user.username;
-            }
+            currentAdminUser = sessionData.user || null;
+            applyCurrentAdminAuthor();
         }
     } catch (error) {
         console.warn('Could not fetch admin session:', error);
@@ -207,6 +218,8 @@ async function savePost() {
         return;
     }
 
+    const authorName = currentAdminUser?.username || document.getElementById('postAuthor').value.trim();
+
     const postData = {
         id: isEditing && currentPost ? currentPost.id : Date.now().toString(),
         slug: document.getElementById('postSlug').value,
@@ -214,7 +227,7 @@ async function savePost() {
         excerpt: document.getElementById('postExcerpt').value,
         category: document.getElementById('postCategory').value,
         categoryLabel: document.getElementById('postCategory').selectedOptions[0].text,
-        author: document.getElementById('postAuthor').value,
+        author: authorName,
         date: isEditing && currentPost ? currentPost.date : new Date().toISOString().split('T')[0],
         readTime: document.getElementById('postReadTime').value,
         featured: document.getElementById('postFeatured').checked,
@@ -264,7 +277,7 @@ function previewPost() {
     const title = document.getElementById('postTitle').value;
     const content = document.getElementById('postContent').value;
     const category = document.getElementById('postCategory').selectedOptions[0]?.text || 'Uncategorized';
-    const author = document.getElementById('postAuthor').value;
+    const author = currentAdminUser?.username || document.getElementById('postAuthor').value;
 
     if (!title || !content) {
         alert('Please enter at least a title and content to preview.');
@@ -413,7 +426,8 @@ async function editPost(id) {
     document.getElementById('postTitle').value = post.title;
     document.getElementById('postSlug').value = post.slug;
     document.getElementById('postCategory').value = post.category;
-    document.getElementById('postAuthor').value = post.author;
+    document.getElementById('postAuthor').value = currentAdminUser?.username || post.author;
+    document.getElementById('postAuthor').readOnly = true;
     document.getElementById('postReadTime').value = post.readTime;
     document.getElementById('postImage').value = post.image || '';
     document.getElementById('postExcerpt').value = post.excerpt;
