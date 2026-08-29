@@ -81,6 +81,20 @@ async function initAdmin() {
     const dbAPI = await LegitWaysDB.initDB();
     db = dbAPI;
 
+    // Fetch and set the current admin's username as the default author
+    try {
+        const sessionResponse = await fetch('/api/auth/session', { credentials: 'same-origin' });
+        if (sessionResponse.ok) {
+            const sessionData = await sessionResponse.json();
+            const authorField = document.getElementById('postAuthor');
+            if (authorField && sessionData.user && sessionData.user.username) {
+                authorField.value = sessionData.user.username;
+            }
+        }
+    } catch (error) {
+        console.warn('Could not fetch admin session:', error);
+    }
+
     // Load initial data
     await refreshData();
 }
