@@ -141,6 +141,15 @@ h6 {
     color: white;
 }
 
+.nav-cta:active,
+.btn-primary:active,
+.btn-secondary:active,
+button:active,
+.btn:active {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: 0 6px 18px rgba(7, 26, 61, 0.12);
+}
+
 .nav-cta.is-loading {
     opacity: 0.9;
     cursor: wait;
@@ -279,6 +288,15 @@ h6 {
     box-shadow: 0 20px 40px rgba(217, 164, 65, 0.38);
 }
 
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.nav-cta:focus-visible,
+button:focus-visible,
+.btn:focus-visible {
+    outline: 3px solid rgba(79, 163, 209, 0.55);
+    outline-offset: 3px;
+}
+
 .btn-secondary {
     background: transparent;
     color: white;
@@ -297,6 +315,10 @@ h6 {
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: white;
+}
+
+.btn-secondary:active {
+    transform: translateY(1px) scale(0.98);
 }
 
 .trust-cue {
