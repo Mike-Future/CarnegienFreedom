@@ -52,50 +52,28 @@ document.querySelectorAll('.fade-in').forEach(el => {
 });
 
 // Form Handler for Lead Magnet
-async function handleSubmit(e) {
+function handleSubmit(e) {
     e.preventDefault();
 
-    const emailInput = e.target.querySelector('.email-input');
     const submitButton = e.target.querySelector('button[type="submit"]');
-    const email = emailInput.value.trim();
+    const fileUrl = 'assets/legit-ways-guide.pdf';
 
     submitButton.disabled = true;
     submitButton.setAttribute('aria-busy', 'true');
 
-    try {
-        const response = await fetch('/api/guide', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        const responseText = await response.text();
-        let result = {};
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = 'legit-ways-guide.pdf';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 
-        if (responseText) {
-            const trimmed = responseText.trim();
-            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-                try {
-                    result = JSON.parse(trimmed);
-                } catch {
-                    throw new Error(`The email service returned an unexpected response (${response.status}). Please try again in a moment.`);
-                }
-            } else {
-                throw new Error(trimmed || `The email service returned an unexpected response (${response.status}). Please try again in a moment.`);
-            }
-        }
-
-        if (!response.ok) {
-            throw new Error(result.error || 'Unable to send the guide');
-        }
-
-        alert('Thank you! Your guide has been sent to ' + email + '.');
+    setTimeout(() => {
         e.target.reset();
-    } catch (error) {
-        alert(error.message);
-    } finally {
         submitButton.disabled = false;
         submitButton.removeAttribute('aria-busy');
-    }
+    }, 500);
 }
 
 // Navbar Scroll Effect
