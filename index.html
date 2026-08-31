@@ -8,10 +8,16 @@
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
     <meta name="description"
         content="Education-first guidance to help you learn what works, avoid scams, and find legit paths to better living. Global. Trustworthy. Scam-free.">
-    <link
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="styles/style.css">
 </head>
 
@@ -79,7 +85,8 @@
             <div class="hero-visual">
                 <div class="hero-image-container">
                     <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80"
-                        alt="Diverse people learning online" class="hero-image">
+                        alt="Diverse people learning online" class="hero-image" loading="eager" fetchpriority="high"
+                        decoding="async">
                     <div class="floating-card card-1">
                         <i class="fas fa-check-circle"></i>
                         <span>Verified Resources</span>
@@ -364,7 +371,7 @@
         </div>
     </footer>
 
-    <script src="scripts/script.js?v=20260828"></script>
+    <script src="scripts/script.js?v=20260828" defer></script>
 </body>
 
 </html>

@@ -2,6 +2,7 @@
 // Mobile Menu Toggle
 function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');
+    if (!menu) return;
     menu.classList.toggle('active');
 }
 
@@ -32,24 +33,25 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // Scroll Animations using Intersection Observer
-const observerOptions = {
-    root: null,
-    rootMargin: '0px',
-    threshold: 0.1
-};
+if ('IntersectionObserver' in window) {
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.fade-in').forEach(el => {
+        observer.observe(el);
     });
-}, observerOptions);
-
-// Observe all elements with fade-in class
-document.querySelectorAll('.fade-in').forEach(el => {
-    observer.observe(el);
-});
+}
 
 function setGuideDownloadState(button, isLoading) {
     if (!button) return;
@@ -121,6 +123,8 @@ window.addEventListener('scroll', () => {
 document.addEventListener('click', (e) => {
     const mobileMenu = document.getElementById('mobileMenu');
     const menuToggle = document.querySelector('.mobile-menu-toggle');
+
+    if (!mobileMenu || !menuToggle) return;
 
     if (mobileMenu.classList.contains('active') &&
         !mobileMenu.contains(e.target) &&
