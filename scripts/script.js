@@ -21,14 +21,22 @@ document.addEventListener('keydown', (event) => {
 // Smooth Scroll for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+        const href = this.getAttribute('href');
+        if (!href || href === '#') {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
         }
+
+        const target = document.querySelector(href);
+        if (!target) return;
+
+        e.preventDefault();
+        const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        target.scrollIntoView({
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            block: 'start'
+        });
     });
 });
 
@@ -108,16 +116,28 @@ function handleSubmit(e) {
 }
 
 // Navbar Scroll Effect
-window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-        navbar.style.background = 'rgba(7, 26, 61, 0.98)';
-        navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
-    } else {
-        navbar.style.background = 'rgba(7, 26, 61, 0.95)';
-        navbar.style.boxShadow = 'none';
-    }
-});
+const navbar = document.querySelector('.navbar');
+if (navbar) {
+    const updateNavbar = () => {
+        const scrolled = window.scrollY > 50;
+        navbar.style.background = scrolled ? 'rgba(7, 26, 61, 0.98)' : 'rgba(7, 26, 61, 0.95)';
+        navbar.style.boxShadow = scrolled ? '0 2px 20px rgba(0,0,0,0.1)' : 'none';
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                updateNavbar();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    };
+
+    updateNavbar();
+    window.addEventListener('scroll', onScroll, { passive: true });
+}
 
 // Close mobile menu when clicking outside
 document.addEventListener('click', (e) => {
