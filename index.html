@@ -371,6 +371,86 @@
         </div>
     </footer>
 
+    <div class="cookie-banner" id="cookieBanner" aria-live="polite" aria-label="Cookie consent banner">
+        <div class="cookie-banner__content">
+            <div class="cookie-banner__text">
+                <h3>We use cookies</h3>
+                <p>
+                    We use necessary cookies to keep the site operating and optional cookies for analytics and improved
+                    experience. You can accept all, reject non-essential cookies, or choose your preferences.
+                    <a href="privacy-policy.html" class="cookie-link">Privacy Policy</a>
+                </p>
+            </div>
+            <div class="cookie-banner__actions">
+                <button type="button" class="cookie-btn cookie-btn--legal" data-cookie-choice="reject">
+                    Reject all
+                </button>
+                <button type="button" class="cookie-btn cookie-btn--secondary" data-cookie-choice="necessary">
+                    Only necessary
+                </button>
+                <button type="button" class="cookie-btn cookie-btn--primary" data-cookie-choice="all">
+                    Accept all
+                </button>
+                <button type="button" class="cookie-btn cookie-btn--ghost" id="manageCookiePrefs">
+                    Manage preferences
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cookie-modal" id="cookieModal" aria-hidden="true">
+        <div class="cookie-modal__panel" role="dialog" aria-modal="true" aria-labelledby="cookiePreferencesTitle">
+            <div class="cookie-modal__header">
+                <h3 id="cookiePreferencesTitle">Cookie preferences</h3>
+                <button type="button" class="cookie-close" id="closeCookieModal" aria-label="Close preferences">
+                    &times;
+                </button>
+            </div>
+
+            <div class="cookie-preference">
+                <div>
+                    <h4>Necessary cookies</h4>
+                    <p>Required for the website to function securely and provide core features.</p>
+                </div>
+                <span class="cookie-state">Always on</span>
+            </div>
+
+            <div class="cookie-preference">
+                <div>
+                    <h4>Analytics cookies</h4>
+                    <p>Help us understand how visitors use the site so we can improve performance and content.</p>
+                </div>
+                <label class="cookie-switch">
+                    <input type="checkbox" id="analyticsCookieToggle">
+                    <span class="cookie-slider"></span>
+                </label>
+            </div>
+
+            <div class="cookie-preference">
+                <div>
+                    <h4>Marketing cookies</h4>
+                    <p>Used for relevant campaign tracking and promotional features, if enabled.</p>
+                </div>
+                <label class="cookie-switch">
+                    <input type="checkbox" id="marketingCookieToggle">
+                    <span class="cookie-slider"></span>
+                </label>
+            </div>
+
+            <div class="cookie-modal__footer">
+                <button type="button" class="cookie-btn cookie-btn--legal" data-cookie-choice="reject">
+                    Reject all
+                </button>
+                <button type="button" class="cookie-btn cookie-btn--secondary" data-cookie-choice="necessary">
+                    Save only necessary
+                </button>
+                <button type="button" class="cookie-btn cookie-btn--primary" data-cookie-choice="all">
+                    Save preferences
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="scripts/script.js?v=20260828" defer></script>
 </body>
 

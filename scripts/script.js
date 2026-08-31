@@ -1,4 +1,159 @@
 // CarnegienFreedom.cc - Main JavaScript
+const COOKIE_CONSENT_KEY = 'legitways_cookie_consent';
+
+function getCookieConsent() {
+    try {
+        const stored = localStorage.getItem(COOKIE_CONSENT_KEY);
+        return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function hasAnalyticsConsent() {
+    const consent = getCookieConsent();
+    return Boolean(consent && consent.analytics === true);
+}
+
+function saveCookieConsent(choice) {
+    const consent = {
+        choice,
+        analytics: choice === 'all',
+        marketing: choice === 'all',
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(consent));
+    } catch (error) {
+        console.warn('Cookie consent could not be saved:', error);
+    }
+
+    const banner = document.getElementById('cookieBanner');
+    const modal = document.getElementById('cookieModal');
+    if (banner) banner.classList.remove('visible');
+    if (modal) modal.classList.remove('visible');
+}
+
+function updateConsentTogglesFromStorage() {
+    const analyticsToggle = document.getElementById('analyticsCookieToggle');
+    const marketingToggle = document.getElementById('marketingCookieToggle');
+    if (!analyticsToggle || !marketingToggle) return;
+
+    const consent = getCookieConsent();
+    if (!consent) {
+        analyticsToggle.checked = false;
+        marketingToggle.checked = false;
+        return;
+    }
+
+    analyticsToggle.checked = Boolean(consent.analytics);
+    marketingToggle.checked = Boolean(consent.marketing);
+}
+
+function applyConsentChoice(choice, options = {}) {
+    const analyticsCookieEnabled = choice === 'reject'
+        ? false
+        : (options.analytics ?? choice === 'all');
+    const marketingCookieEnabled = choice === 'reject'
+        ? false
+        : (options.marketing ?? choice === 'all');
+
+    const consent = {
+        choice,
+        analytics: analyticsCookieEnabled,
+        marketing: marketingCookieEnabled,
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(consent));
+    } catch (error) {
+        console.warn('Cookie consent could not be saved:', error);
+    }
+
+    const banner = document.getElementById('cookieBanner');
+    const modal = document.getElementById('cookieModal');
+    if (banner) banner.classList.remove('visible');
+    if (modal) modal.classList.remove('visible');
+}
+
+function openCookieModal() {
+    const modal = document.getElementById('cookieModal');
+    if (!modal) return;
+    updateConsentTogglesFromStorage();
+    modal.classList.add('visible');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeCookieModal() {
+    const modal = document.getElementById('cookieModal');
+    if (!modal) return;
+    modal.classList.remove('visible');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function initializeCookieBanner() {
+    const banner = document.getElementById('cookieBanner');
+    const modal = document.getElementById('cookieModal');
+    const managePrefsButton = document.getElementById('manageCookiePrefs');
+    const closeButton = document.getElementById('closeCookieModal');
+    const consentButtons = document.querySelectorAll('[data-cookie-choice]');
+    const analyticsToggle = document.getElementById('analyticsCookieToggle');
+    const marketingToggle = document.getElementById('marketingCookieToggle');
+
+    const consent = getCookieConsent();
+    if (!consent) {
+        if (banner) banner.classList.add('visible');
+    } else {
+        if (banner) banner.classList.remove('visible');
+    }
+
+    consentButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const choice = button.dataset.cookieChoice;
+
+            if (choice === 'all') {
+                applyConsentChoice('all', { analytics: true, marketing: true });
+                return;
+            }
+
+            if (choice === 'reject') {
+                applyConsentChoice('reject', { analytics: false, marketing: false });
+                return;
+            }
+
+            const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : false;
+            const marketingEnabled = marketingToggle ? marketingToggle.checked : false;
+            applyConsentChoice('necessary', { analytics: analyticsEnabled, marketing: marketingEnabled });
+        });
+    });
+
+    if (managePrefsButton) {
+        managePrefsButton.addEventListener('click', openCookieModal);
+    }
+
+    if (closeButton) {
+        closeButton.addEventListener('click', closeCookieModal);
+    }
+
+    if (modal) {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeCookieModal();
+            }
+        });
+    }
+
+    if (analyticsToggle) {
+        analyticsToggle.checked = Boolean(consent?.analytics);
+    }
+
+    if (marketingToggle) {
+        marketingToggle.checked = Boolean(consent?.marketing);
+    }
+}
+
 // Mobile Menu Toggle
 function toggleMobileMenu() {
     const menu = document.getElementById('mobileMenu');
@@ -17,6 +172,8 @@ document.addEventListener('keydown', (event) => {
         window.location.href = 'admin.html';
     }
 });
+
+initializeCookieBanner();
 
 // Smooth Scroll for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -175,6 +332,10 @@ if ('IntersectionObserver' in window) {
 
 // Analytics placeholder (replace with your actual analytics)
 function trackEvent(eventName, properties) {
+    if (!hasAnalyticsConsent()) {
+        return;
+    }
+
     // Example: gtag('event', eventName, properties);
     // Example: fbq('track', eventName, properties);
     console.log('Event tracked:', eventName, properties);
