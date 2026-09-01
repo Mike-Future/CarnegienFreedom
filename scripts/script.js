@@ -296,6 +296,64 @@ if (navbar) {
     window.addEventListener('scroll', onScroll, { passive: true });
 }
 
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Privacy policy page interactions
+const privacyScrollShell = document.querySelector('.privacy-scroll-shell');
+const privacyMain = document.querySelector('.privacy-main');
+const backToTop = document.getElementById('backToTop');
+const privacySections = Array.from(document.querySelectorAll('.section'));
+const privacyTocLinks = Array.from(document.querySelectorAll('.privacy-toc a'));
+
+function updateScrollEffects() {
+    if (backToTop) {
+        backToTop.classList.toggle('visible', window.scrollY > 400);
+    }
+
+    if (privacyTocLinks.length > 0 && privacySections.length > 0) {
+        let current = '';
+
+        privacySections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (window.scrollY >= sectionTop - 120) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        privacyTocLinks.forEach(link => {
+            const isActive = link.getAttribute('href') === '#' + current;
+            link.classList.toggle('active', isActive);
+        });
+    }
+
+    if (privacyScrollShell && privacyMain) {
+        if (prefersReducedMotion) {
+            privacyMain.style.transform = 'translateY(0px)';
+            return;
+        }
+
+        const shellRect = privacyScrollShell.getBoundingClientRect();
+        const viewportOffset = Math.max(0, -shellRect.top + 80);
+        const maxViewportTravel = Math.max(0, window.innerHeight * 0.25);
+        const translate = Math.min(viewportOffset * 0.55, maxViewportTravel);
+        privacyMain.style.transform = `translateY(-${translate}px)`;
+    }
+}
+
+let scrollFrame = null;
+function scheduleScrollEffects() {
+    if (scrollFrame !== null) return;
+
+    scrollFrame = window.requestAnimationFrame(() => {
+        updateScrollEffects();
+        scrollFrame = null;
+    });
+}
+
+window.addEventListener('scroll', scheduleScrollEffects, { passive: true });
+window.addEventListener('resize', scheduleScrollEffects);
+updateScrollEffects();
+
 // Close mobile menu when clicking outside
 document.addEventListener('click', (e) => {
     const mobileMenu = document.getElementById('mobileMenu');
@@ -349,65 +407,21 @@ document.querySelectorAll('.btn-primary, .btn-secondary, .nav-cta').forEach(btn 
     });
 });
 
-// Privacy policy page interactions
-const privacyScrollShell = document.querySelector('.privacy-scroll-shell');
-const privacyMain = document.querySelector('.privacy-main');
-const backToTop = document.getElementById('backToTop');
-const privacySections = document.querySelectorAll('.section');
-const privacyTocLinks = document.querySelectorAll('.privacy-toc a');
-
 if (backToTop) {
     backToTop.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 400) {
-            backToTop.classList.add('visible');
-        } else {
-            backToTop.classList.remove('visible');
-        }
-    }, { passive: true });
 }
 
-if (privacyTocLinks.length > 0 && privacySections.length > 0) {
-    window.addEventListener('scroll', () => {
-        let current = '';
-
-        privacySections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            if (window.scrollY >= sectionTop - 120) {
-                current = section.getAttribute('id');
-            }
-        });
-
-        privacyTocLinks.forEach(link => {
-            const isActive = link.getAttribute('href') === '#' + current;
-            link.classList.toggle('active', isActive);
-        });
-    }, { passive: true });
-
+if (privacyTocLinks.length > 0) {
     privacyTocLinks.forEach(link => {
         link.addEventListener('click', (event) => {
             event.preventDefault();
             const target = document.querySelector(link.getAttribute('href'));
             if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
             }
         });
     });
-}
-
-if (privacyScrollShell && privacyMain) {
-    const updatePrivacyScroll = () => {
-        const shellRect = privacyScrollShell.getBoundingClientRect();
-        const viewportOffset = Math.max(0, -shellRect.top + 80);
-        const maxViewportTravel = Math.max(0, window.innerHeight * 0.25);
-        const translate = Math.min(viewportOffset * 0.55, maxViewportTravel);
-        privacyMain.style.transform = `translateY(-${translate}px)`;
-    };
-
-    window.addEventListener('scroll', updatePrivacyScroll, { passive: true });
-    window.addEventListener('resize', updatePrivacyScroll);
-    requestAnimationFrame(updatePrivacyScroll);
 }
