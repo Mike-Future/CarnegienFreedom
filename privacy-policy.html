@@ -587,68 +587,9 @@
         </div>
     </footer>
 
-    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑</button>
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
 
-    <script>
-        // Back to top visibility
-        const backToTop = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 400) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
-            }
-        });
-
-        // Active TOC link highlighting
-        const sections = document.querySelectorAll('.section');
-        const tocLinks = document.querySelectorAll('.toc-box a');
-
-        window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (window.scrollY >= sectionTop - 120) {
-                    current = section.getAttribute('id');
-                }
-            });
-
-            tocLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === '#' + current) {
-                    link.classList.add('active');
-                }
-            });
-        });
-
-        // Smooth scroll for TOC links
-        tocLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = document.querySelector(link.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
-
-        const privacyScrollShell = document.querySelector('.privacy-scroll-shell');
-        const privacyMain = document.querySelector('.privacy-main');
-
-        if (privacyScrollShell && privacyMain) {
-            const updatePrivacyScroll = () => {
-                const shellRect = privacyScrollShell.getBoundingClientRect();
-                const viewportOffset = Math.max(0, -shellRect.top + 80);
-                const maxViewportTravel = Math.max(0, window.innerHeight * 0.25);
-                const translate = Math.min(viewportOffset * 0.55, maxViewportTravel);
-                privacyMain.style.transform = `translateY(-${translate}px)`;
-            };
-
-            window.addEventListener('scroll', updatePrivacyScroll, { passive: true });
-            window.addEventListener('resize', updatePrivacyScroll);
-            requestAnimationFrame(updatePrivacyScroll);
-        }
-    </script>
+    <script src="scripts/script.js"></script>
 
 </body>
 
