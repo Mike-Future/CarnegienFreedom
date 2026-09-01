@@ -1,5 +1,96 @@
 // CarnegienFreedom.cc - Main JavaScript
 const COOKIE_CONSENT_KEY = 'legitways_cookie_consent';
+let cookieConsentInitialized = false;
+
+function ensureCookieConsentUI() {
+    const existingBanner = document.getElementById('cookieBanner');
+    const existingModal = document.getElementById('cookieModal');
+
+    if (existingBanner && existingModal) {
+        return;
+    }
+
+    if (!existingBanner) {
+        const banner = document.createElement('div');
+        banner.id = 'cookieBanner';
+        banner.className = 'cookie-banner';
+        banner.setAttribute('aria-live', 'polite');
+        banner.setAttribute('aria-label', 'Cookie consent banner');
+        banner.innerHTML = `
+            <div class="cookie-banner__content">
+                <div class="cookie-banner__text">
+                    <h3>We use cookies</h3>
+                    <p>
+                        We use necessary cookies to keep the site operating and optional cookies for analytics and improved
+                        experience. You can accept all, reject non-essential cookies, or choose your preferences.
+                        <a href="privacy-policy.html" class="cookie-link">Privacy Policy</a>
+                        <span> · </span>
+                        <a href="cookie-policy.html" class="cookie-link">Cookie Policy</a>
+                    </p>
+                </div>
+                <div class="cookie-banner__actions">
+                    <button type="button" class="cookie-btn cookie-btn--legal" data-cookie-choice="reject">Reject all</button>
+                    <button type="button" class="cookie-btn cookie-btn--secondary" data-cookie-choice="necessary">Only necessary</button>
+                    <button type="button" class="cookie-btn cookie-btn--primary" data-cookie-choice="all">Accept all</button>
+                    <button type="button" class="cookie-btn cookie-btn--ghost" id="manageCookiePrefs">Manage preferences</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(banner);
+    }
+
+    if (!existingModal) {
+        const modal = document.createElement('div');
+        modal.id = 'cookieModal';
+        modal.className = 'cookie-modal';
+        modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML = `
+            <div class="cookie-modal__panel" role="dialog" aria-modal="true" aria-labelledby="cookiePreferencesTitle">
+                <div class="cookie-modal__header">
+                    <h3 id="cookiePreferencesTitle">Cookie preferences</h3>
+                    <button type="button" class="cookie-close" id="closeCookieModal" aria-label="Close preferences">&times;</button>
+                </div>
+
+                <div class="cookie-preference">
+                    <div>
+                        <h4>Necessary cookies</h4>
+                        <p>Required for the website to function securely and provide core features.</p>
+                    </div>
+                    <span class="cookie-state">Always on</span>
+                </div>
+
+                <div class="cookie-preference">
+                    <div>
+                        <h4>Analytics cookies</h4>
+                        <p>Help us understand how visitors use the site so we can improve performance and content.</p>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="analyticsCookieToggle">
+                        <span class="cookie-slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-preference">
+                    <div>
+                        <h4>Marketing cookies</h4>
+                        <p>Used for relevant campaign tracking and promotional features, if enabled.</p>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="marketingCookieToggle">
+                        <span class="cookie-slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-modal__footer">
+                    <button type="button" class="cookie-btn cookie-btn--legal" data-cookie-choice="reject">Reject all</button>
+                    <button type="button" class="cookie-btn cookie-btn--secondary" data-cookie-choice="necessary">Save only necessary</button>
+                    <button type="button" class="cookie-btn cookie-btn--primary" data-cookie-choice="all">Save preferences</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+}
 
 function getCookieConsent() {
     try {
@@ -13,26 +104,6 @@ function getCookieConsent() {
 function hasAnalyticsConsent() {
     const consent = getCookieConsent();
     return Boolean(consent && consent.analytics === true);
-}
-
-function saveCookieConsent(choice) {
-    const consent = {
-        choice,
-        analytics: choice === 'all',
-        marketing: choice === 'all',
-        timestamp: new Date().toISOString()
-    };
-
-    try {
-        localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(consent));
-    } catch (error) {
-        console.warn('Cookie consent could not be saved:', error);
-    }
-
-    const banner = document.getElementById('cookieBanner');
-    const modal = document.getElementById('cookieModal');
-    if (banner) banner.classList.remove('visible');
-    if (modal) modal.classList.remove('visible');
 }
 
 function updateConsentTogglesFromStorage() {
@@ -93,65 +164,76 @@ function closeCookieModal() {
     modal.setAttribute('aria-hidden', 'true');
 }
 
-function initializeCookieBanner() {
-    const banner = document.getElementById('cookieBanner');
-    const modal = document.getElementById('cookieModal');
-    const managePrefsButton = document.getElementById('manageCookiePrefs');
-    const closeButton = document.getElementById('closeCookieModal');
-    const consentButtons = document.querySelectorAll('[data-cookie-choice]');
+function handleCookieChoiceClick(event) {
+    const button = event.target.closest('[data-cookie-choice]');
+    if (!button) return;
+
+    const choice = button.dataset.cookieChoice;
     const analyticsToggle = document.getElementById('analyticsCookieToggle');
     const marketingToggle = document.getElementById('marketingCookieToggle');
 
-    const consent = getCookieConsent();
-    if (!consent) {
-        if (banner) banner.classList.add('visible');
-    } else {
-        if (banner) banner.classList.remove('visible');
+    if (choice === 'all') {
+        applyConsentChoice('all', { analytics: true, marketing: true });
+        return;
     }
 
-    consentButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-            const choice = button.dataset.cookieChoice;
+    if (choice === 'reject') {
+        applyConsentChoice('reject', { analytics: false, marketing: false });
+        return;
+    }
 
-            if (choice === 'all') {
-                applyConsentChoice('all', { analytics: true, marketing: true });
-                return;
-            }
+    const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : false;
+    const marketingEnabled = marketingToggle ? marketingToggle.checked : false;
+    applyConsentChoice('necessary', { analytics: analyticsEnabled, marketing: marketingEnabled });
+}
 
-            if (choice === 'reject') {
-                applyConsentChoice('reject', { analytics: false, marketing: false });
-                return;
-            }
+function initializeCookieBanner() {
+    if (cookieConsentInitialized) return;
+    cookieConsentInitialized = true;
 
-            const analyticsEnabled = analyticsToggle ? analyticsToggle.checked : false;
-            const marketingEnabled = marketingToggle ? marketingToggle.checked : false;
-            applyConsentChoice('necessary', { analytics: analyticsEnabled, marketing: marketingEnabled });
-        });
+    ensureCookieConsentUI();
+
+    const banner = document.getElementById('cookieBanner');
+    const modal = document.getElementById('cookieModal');
+    const analyticsToggle = document.getElementById('analyticsCookieToggle');
+    const marketingToggle = document.getElementById('marketingCookieToggle');
+    const consent = getCookieConsent();
+
+    if (!consent) {
+        banner?.classList.add('visible');
+    } else {
+        banner?.classList.remove('visible');
+    }
+
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-cookie-settings]');
+        if (trigger) {
+            event.preventDefault();
+            openCookieModal();
+            return;
+        }
+
+        if (event.target.closest('#manageCookiePrefs')) {
+            event.preventDefault();
+            openCookieModal();
+            return;
+        }
+
+        if (event.target.closest('#closeCookieModal')) {
+            closeCookieModal();
+            return;
+        }
+
+        if (event.target === modal) {
+            closeCookieModal();
+            return;
+        }
+
+        handleCookieChoiceClick(event);
     });
 
-    if (managePrefsButton) {
-        managePrefsButton.addEventListener('click', openCookieModal);
-    }
-
-    if (closeButton) {
-        closeButton.addEventListener('click', closeCookieModal);
-    }
-
-    if (modal) {
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) {
-                closeCookieModal();
-            }
-        });
-    }
-
-    if (analyticsToggle) {
-        analyticsToggle.checked = Boolean(consent?.analytics);
-    }
-
-    if (marketingToggle) {
-        marketingToggle.checked = Boolean(consent?.marketing);
-    }
+    analyticsToggle.checked = Boolean(consent?.analytics);
+    marketingToggle.checked = Boolean(consent?.marketing);
 }
 
 // Mobile Menu Toggle
