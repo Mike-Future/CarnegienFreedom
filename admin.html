@@ -23,7 +23,7 @@
             <p id="authPrompt">Log in to manage blog posts</p>
 
             <form id="loginForm">
-                <div class="password-input-wrapper" id="usernameField" style="display: none;">
+                <div class="password-input-wrapper is-hidden" id="usernameField">
                     <i class="fas fa-user"></i>
                     <input type="text" id="adminUsername" placeholder="Choose a username" autocomplete="username">
                 </div>
@@ -112,7 +112,7 @@
                 </div>
                 <div class="stat-card">
                     <h4>Last Updated</h4>
-                    <div class="stat-value" id="lastUpdated" style="font-size: 1rem;">-</div>
+                    <div class="stat-value stat-value--date" id="lastUpdated">-</div>
                 </div>
             </div>
 
@@ -214,18 +214,17 @@
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="postFeatured" style="width: auto; margin-right: 0.5rem;">
+                                <input type="checkbox" id="postFeatured" class="featured-checkbox">
                                 Mark as Featured Post
                             </label>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="button" class="btn btn-secondary" data-admin-action="preview"
-                            style="background: var(--soft-sky-blue); color: white;">
+                    <div class="post-actions">
+                        <button type="button" class="btn btn-secondary btn-preview" data-admin-action="preview">
                             <i class="fas fa-eye"></i> Preview
                         </button>
-                        <button type="submit" class="btn" style="background: var(--growth-green); color: white;">
+                        <button type="submit" class="btn btn-publish">
                             <i class="fas fa-paper-plane"></i> Publish Post
                         </button>
                         <button type="button" class="btn btn-secondary" data-admin-action="clear-form">
@@ -235,7 +234,7 @@
                 </form>
 
                 <!-- Preview Section -->
-                <div class="preview-section" id="previewSection" style="display: none;">
+                <div class="preview-section is-hidden" id="previewSection">
                     <div class="preview-header">
                         <h3>Preview</h3>
                         <button class="btn btn-secondary" data-admin-action="close-preview">
@@ -262,9 +261,8 @@
                     <h4><i class="fas fa-file-word"></i> Blog Document</h4>
                     <p>Download all published posts as a Word-compatible document for reading, editing, or sharing.</p>
                 </div>
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <button class="btn" data-admin-action="download-document"
-                        style="background: var(--opportunity-gold); color: white;">
+                <div class="export-actions">
+                    <button class="btn btn-export" data-admin-action="download-document">
                         <i class="fas fa-file-word"></i> Download Document
                     </button>
                 </div>

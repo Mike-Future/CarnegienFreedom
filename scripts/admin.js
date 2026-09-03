@@ -62,9 +62,9 @@ async function handleLogin(e) {
     } catch (error) {
         document.getElementById('errorText').textContent = error.message;
         errorMessage.classList.add('show');
-        document.querySelector('.login-box').style.animation = 'shake 0.5s';
+        document.querySelector('.login-box').classList.add('shake');
         setTimeout(() => {
-            document.querySelector('.login-box').style.animation = '';
+            document.querySelector('.login-box').classList.remove('shake');
         }, 500);
     }
 
@@ -87,7 +87,7 @@ function applyCurrentAdminAuthor() {
 }
 
 async function initAdmin() {
-    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('loginScreen').classList.add('is-hidden');
     document.getElementById('adminPanel').classList.add('show');
 
     // Initialize database
@@ -122,7 +122,7 @@ async function logout() {
 function toggleAuthMode() {
     registrationMode = !registrationMode;
     const usernameInput = document.getElementById('adminUsername');
-    document.getElementById('usernameField').style.display = registrationMode ? 'block' : 'none';
+    document.getElementById('usernameField').classList.toggle('is-hidden', !registrationMode);
     usernameInput.required = registrationMode;
     document.getElementById('adminPassword').autocomplete = registrationMode ? 'new-password' : 'current-password';
     document.getElementById('authPrompt').textContent = registrationMode
@@ -298,7 +298,7 @@ function previewPost() {
     `;
 
     document.getElementById('previewContent').innerHTML = previewHTML;
-    document.getElementById('previewSection').style.display = 'block';
+    document.getElementById('previewSection').classList.remove('is-hidden');
     document.getElementById('previewSection').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -344,13 +344,13 @@ async function loadArticleDocument(file) {
 }
 
 function closePreview() {
-    document.getElementById('previewSection').style.display = 'none';
+    document.getElementById('previewSection').classList.add('is-hidden');
 }
 
 function clearForm() {
     document.getElementById('postForm').reset();
     document.getElementById('excerptCount').textContent = '0';
-    document.getElementById('previewSection').style.display = 'none';
+    document.getElementById('previewSection').classList.add('is-hidden');
     currentPost = null;
     isEditing = false;
     uploadedDocumentName = '';

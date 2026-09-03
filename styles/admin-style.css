@@ -691,3 +691,43 @@ body {
         flex-wrap: nowrap;
     }
 }
+
+.is-hidden {
+    display: none;
+}
+
+.stat-value--date {
+    font-size: 1rem;
+}
+
+.featured-checkbox {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.post-actions,
+.export-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.export-actions {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.btn-preview {
+    background: var(--soft-sky-blue);
+    color: white;
+}
+
+.btn-publish {
+    background: var(--growth-green);
+    color: white;
+}
+
+.btn-export {
+    background: var(--opportunity-gold);
+    color: white;
+}
