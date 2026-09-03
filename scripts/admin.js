@@ -552,9 +552,7 @@ function switchTab(tabName) {
     });
 
     // Find the clicked button and activate it
-    const clickedBtn = Array.from(document.querySelectorAll('.tab-btn')).find(
-        btn => btn.getAttribute('onclick')?.includes(`switchTab('${tabName}')`)
-    );
+    const clickedBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
     if (clickedBtn) clickedBtn.classList.add('active');
 
     // Update content
@@ -622,6 +620,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
     document.getElementById('authSwitch')?.addEventListener('click', toggleAuthMode);
     document.getElementById('togglePassword')?.addEventListener('click', togglePassword);
+
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+
+    document.querySelectorAll('[data-admin-action]').forEach(button => {
+        button.addEventListener('click', () => {
+            const action = button.dataset.adminAction;
+            if (action === 'download-document') downloadDocument();
+            if (action === 'logout') logout();
+            if (action === 'preview') previewPost();
+            if (action === 'clear-form') clearForm();
+            if (action === 'close-preview') closePreview();
+        });
+    });
 
     document.getElementById('documentFile')?.addEventListener('change', (event) => {
         loadArticleDocument(event.target.files[0]);

@@ -83,11 +83,11 @@
                     <i class="fas fa-external-link-alt"></i>
                     View Blog
                 </a>
-                <button class="btn btn-secondary" onclick="downloadDocument()">
+                <button class="btn btn-secondary" data-admin-action="download-document">
                     <i class="fas fa-file-word"></i>
                     Download Document
                 </button>
-                <button class="btn btn-danger" onclick="logout()">
+                <button class="btn btn-danger" data-admin-action="logout">
                     <i class="fas fa-sign-out-alt"></i>
                     Logout
                 </button>
@@ -118,13 +118,13 @@
 
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('add')">
+                <button class="tab-btn active" data-tab="add">
                     <i class="fas fa-plus"></i> Add New Post
                 </button>
-                <button class="tab-btn" onclick="switchTab('manage')">
+                <button class="tab-btn" data-tab="manage">
                     <i class="fas fa-list"></i> Manage Posts
                 </button>
-                <button class="tab-btn" onclick="switchTab('export')">
+                <button class="tab-btn" data-tab="export">
                     <i class="fas fa-file-word"></i> Export Document
                 </button>
             </div>
@@ -221,14 +221,14 @@
                     </div>
 
                     <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="button" class="btn btn-secondary" onclick="previewPost()"
+                        <button type="button" class="btn btn-secondary" data-admin-action="preview"
                             style="background: var(--soft-sky-blue); color: white;">
                             <i class="fas fa-eye"></i> Preview
                         </button>
                         <button type="submit" class="btn" style="background: var(--growth-green); color: white;">
                             <i class="fas fa-paper-plane"></i> Publish Post
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                        <button type="button" class="btn btn-secondary" data-admin-action="clear-form">
                             <i class="fas fa-trash"></i> Clear
                         </button>
                     </div>
@@ -238,7 +238,7 @@
                 <div class="preview-section" id="previewSection" style="display: none;">
                     <div class="preview-header">
                         <h3>Preview</h3>
-                        <button class="btn btn-secondary" onclick="closePreview()">
+                        <button class="btn btn-secondary" data-admin-action="close-preview">
                             <i class="fas fa-times"></i> Close
                         </button>
                     </div>
@@ -263,7 +263,7 @@
                     <p>Download all published posts as a Word-compatible document for reading, editing, or sharing.</p>
                 </div>
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <button class="btn" onclick="downloadDocument()"
+                    <button class="btn" data-admin-action="download-document"
                         style="background: var(--opportunity-gold); color: white;">
                         <i class="fas fa-file-word"></i> Download Document
                     </button>

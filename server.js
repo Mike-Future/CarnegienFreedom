@@ -8,6 +8,7 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,11 @@ const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'blog-data.json');
 const GUIDE_FILE = path.join(__dirname, 'assets', 'legit-ways-guide.pdf');
 let databaseAvailable = false;
+const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+const isProduction = process.env.NODE_ENV === 'production';
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -23,12 +29,46 @@ const pool = new Pool({
 
 app.disable('x-powered-by');
 app.use(helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com', 'data:'],
+            imgSrc: ["'self'", 'https:', 'data:'],
+            connectSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            frameAncestors: ["'none'"]
+        }
+    },
     crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
-app.use(cors());
+app.use(cors((req, callback) => {
+    const origin = req.header('Origin');
+    const isAllowed = !origin || allowedOrigins.includes(origin);
+    callback(null, { origin: isAllowed });
+}));
 app.use(compression());
 app.use(express.json({ limit: '1mb' }));
+
+const authRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: { error: 'Too many authentication attempts. Please try again later.' }
+});
+
+const guideRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: 5,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: { error: 'Too many guide requests. Please try again later.' }
+});
+
 app.use(express.static(path.join(__dirname), {
     maxAge: '1d',
     etag: true,
@@ -242,7 +282,8 @@ function hashSessionToken(token) {
 }
 
 function setSessionCookie(res, token) {
-    res.setHeader('Set-Cookie', `legitways_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400`);
+    const secureAttribute = isProduction ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `legitways_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400${secureAttribute}`);
 }
 
 function getSessionToken(req) {
@@ -282,7 +323,7 @@ async function requireAdmin(req, res, next) {
     next();
 }
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authRateLimit, async (req, res) => {
     const username = String(req.body?.username || '').trim();
     const email = String(req.body?.email || '').trim().toLowerCase();
     const password = String(req.body?.password || '');
@@ -316,7 +357,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authRateLimit, async (req, res) => {
     const email = String(req.body?.email || '').trim().toLowerCase();
     const password = String(req.body?.password || '');
     let result;
@@ -353,11 +394,12 @@ app.post('/api/auth/logout', async (req, res) => {
     } catch (error) {
         console.error('Admin logout cleanup failed:', error.message);
     }
-    res.setHeader('Set-Cookie', 'legitways_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+    const secureAttribute = isProduction ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `legitways_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secureAttribute}`);
     res.status(204).end();
 });
 
-app.post('/api/guide', async (req, res) => {
+app.post('/api/guide', guideRateLimit, async (req, res) => {
     const email = String(req.body?.email || '').trim();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
         return res.status(400).json({ error: 'A valid email address is required' });

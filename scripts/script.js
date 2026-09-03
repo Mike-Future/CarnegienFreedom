@@ -206,6 +206,26 @@ function initializeCookieBanner() {
     }
 
     document.addEventListener('click', (event) => {
+        const menuToggle = event.target.closest('.mobile-menu-toggle');
+        if (menuToggle) {
+            toggleMobileMenu();
+            return;
+        }
+
+        const guideButton = event.target.closest('[data-guide-button]');
+        if (guideButton) {
+            event.preventDefault();
+            if (guideButton.dataset.guideButton === 'mobile') toggleMobileMenu();
+            downloadGuide(guideButton);
+            return;
+        }
+
+        const mobileMenuLink = event.target.closest('#mobileMenu a');
+        if (mobileMenuLink) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu?.classList.remove('active');
+        }
+
         const trigger = event.target.closest('[data-cookie-settings]');
         if (trigger) {
             event.preventDefault();
@@ -256,6 +276,10 @@ document.addEventListener('keydown', (event) => {
 });
 
 initializeCookieBanner();
+
+document.querySelectorAll('.email-form').forEach(form => {
+    form.addEventListener('submit', handleSubmit);
+});
 
 // Smooth Scroll for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
