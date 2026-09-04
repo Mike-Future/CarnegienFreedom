@@ -4,7 +4,7 @@ Education-first guidance for safer opportunities, scam awareness, practical lear
 
 ## About This Repository
 
-This repository contains the CarnegienFreedom website and its dynamic blog management system. The public experience uses static HTML, CSS, and vanilla JavaScript. Blog content is served through an Express API backed by PostgreSQL, with a local JSON fallback for public read operations when the database is unavailable.
+This repository contains the CarnegienFreedom website and its dynamic blog management system. Next.js serves the route shell and statically renders the stable informational pages, while the blog and admin experiences load live data through the Express API backed by PostgreSQL. Public blog reads fall back to local JSON when the database is unavailable.
 
 ## Features
 
@@ -61,6 +61,16 @@ ADMIN_BOOTSTRAP_PASSWORD=replace-with-a-long-password
 ```
 
 For production, use managed secrets, `NODE_ENV=production`, `DB_SSL=true`, and set `ALLOWED_ORIGINS` to the exact HTTPS origins that should call the API.
+
+## External Additions Required
+
+The website runs without these services in read-only fallback mode, but they are required for the complete dynamic experience:
+
+- PostgreSQL 16: required for live blog updates, admin authentication, and publishing. Use `npm run db:start` locally or provide `DATABASE_URL` in production.
+- Production environment variables: set `DATABASE_URL`, `DB_SSL=true`, `ALLOWED_ORIGINS`, and optional `ADMIN_BOOTSTRAP_*` values in the hosting provider's secret settings.
+- Google Fonts and Font Awesome CDN: used by the existing visual design. Self-host these assets if the deployment must avoid third-party requests.
+- Unsplash: current article and homepage images use external Unsplash URLs. Replace them with local files if external image delivery is not desired.
+- Docker Desktop: only needed for the local PostgreSQL container, not for production.
 
 ## Routes
 

@@ -2,7 +2,7 @@ services:
   - type: web
     name: carnegienfreedom
     runtime: node
-    buildCommand: npm install
+    buildCommand: npm install; npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -11,3 +11,5 @@ services:
         sync: false
       - key: DB_SSL
         value: "true"
+      - key: ALLOWED_ORIGINS
+        sync: false

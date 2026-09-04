@@ -3,8 +3,6 @@
 import { useEffect } from 'react';
 
 const scriptsByPage = {
-    blog: ['/scripts/db.js', '/scripts/blog.js'],
-    'blog-post': ['/scripts/db.js', '/scripts/blog-post.js'],
     admin: ['/scripts/db.js', '/scripts/admin.js'],
 };
 
