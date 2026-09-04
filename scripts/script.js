@@ -1,6 +1,30 @@
 // CarnegienFreedom.cc - Main JavaScript
 const COOKIE_CONSENT_KEY = 'legitways_cookie_consent';
+const EARLY_ACCESS_DISMISSED_KEY = 'legitways_early_access_dismissed';
 let cookieConsentInitialized = false;
+
+function initializeEarlyAccessBanner() {
+    const banner = document.getElementById('earlyAccessBanner');
+    const dismissButton = document.getElementById('dismissEarlyAccess');
+    if (!banner || !dismissButton) return;
+
+    try {
+        if (localStorage.getItem(EARLY_ACCESS_DISMISSED_KEY) === 'true') {
+            banner.hidden = true;
+        }
+    } catch (error) {
+        // The banner remains available when storage is restricted.
+    }
+
+    dismissButton.addEventListener('click', () => {
+        banner.hidden = true;
+        try {
+            localStorage.setItem(EARLY_ACCESS_DISMISSED_KEY, 'true');
+        } catch (error) {
+            // Dismissal still works for the current page when storage is restricted.
+        }
+    });
+}
 
 function ensureCookieConsentUI() {
     const existingBanner = document.getElementById('cookieBanner');
@@ -276,6 +300,7 @@ document.addEventListener('keydown', (event) => {
 });
 
 initializeCookieBanner();
+initializeEarlyAccessBanner();
 
 // Smooth Scroll for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
