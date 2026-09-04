@@ -17,8 +17,7 @@ This document is the operational reference for development, deployment, content 
 - Vanilla JavaScript and CSS
 - Helmet for HTTP security headers
 - CORS with an explicit origin allowlist
-- `express-rate-limit` for authentication and guide-request throttling
-- Nodemailer for guide email delivery
+- `express-rate-limit` for authentication throttling
 - Docker Compose for local PostgreSQL
 - Render deployment configuration in `render.yaml`
 
@@ -28,7 +27,7 @@ No frontend framework or build step is required. The browser loads the HTML, CSS
 
 | Path                       | Purpose                                                      |
 | -------------------------- | ------------------------------------------------------------ |
-| `index.html`               | Main landing page, guide request form, cookie consent UI     |
+| `index.html`               | Main landing page, direct guide download, cookie consent UI  |
 | `blog.html`                | Blog listing, category filters, search, and featured content |
 | `blog-post.html`           | Dynamic article page selected by `?slug=...`                 |
 | `contact.html`             | Contact page                                                 |
@@ -95,12 +94,6 @@ ADMIN_BOOTSTRAP_USERNAME=admin
 ADMIN_BOOTSTRAP_EMAIL=admin@example.com
 ADMIN_BOOTSTRAP_PASSWORD=replace-with-a-long-password
 
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=mailer@example.com
-SMTP_PASSWORD=replace-with-an-app-password
-SMTP_FROM=mailer@example.com
 ```
 
 The admin bootstrap variables are used only when the database has no admin users. Use a unique password and keep all credentials in the environment, never in HTML or JavaScript.
@@ -129,9 +122,8 @@ The project is configured for a Node web service on Render:
 4. Set `DATABASE_URL` to the managed database connection string.
 5. Set `DB_SSL=true` for the hosted database.
 6. Set `NODE_ENV=production`.
-7. Set SMTP variables if guide email delivery is required.
-8. Set `ALLOWED_ORIGINS` to a comma-separated list of trusted browser origins, for example `https://carnegienfreedom.com,https://www.carnegienfreedom.com`.
-9. Set strong admin bootstrap credentials only for first-time initialization, then remove or rotate them according to the hosting provider's secret-management process.
+7. Set `ALLOWED_ORIGINS` to a comma-separated list of trusted browser origins, for example `https://carnegienfreedom.com,https://www.carnegienfreedom.com`.
+8. Set strong admin bootstrap credentials only for first-time initialization, then remove or rotate them according to the hosting provider's secret-management process.
 
 The server listens on the `PORT` supplied by Render. Do not hard-code a production port.
 
@@ -212,18 +204,17 @@ Authentication requests are rate-limited to 10 requests per 15 minutes per clien
 
 ### Admin content operations
 
-| Method   | Route                           | Description                                              |
-| -------- | ------------------------------- | -------------------------------------------------------- |
-| `POST`   | `/api/guide`                    | Sends the educational guide to a validated email address |
-| `POST`   | `/api/posts`                    | Creates or updates a post by ID                          |
-| `DELETE` | `/api/posts/:id`                | Deletes a post                                           |
-| `POST`   | `/api/categories`               | Creates or updates a category                            |
-| `POST`   | `/api/categories/update-counts` | Recalculates category counts                             |
-| `POST`   | `/api/settings`                 | Creates or updates a setting                             |
-| `POST`   | `/api/data/import`              | Replaces posts and categories from a validated payload   |
-| `POST`   | `/api/data/clear`               | Deletes all posts and categories                         |
+| Method   | Route                           | Description                                            |
+| -------- | ------------------------------- | ------------------------------------------------------ |
+| `POST`   | `/api/posts`                    | Creates or updates a post by ID                        |
+| `DELETE` | `/api/posts/:id`                | Deletes a post                                         |
+| `POST`   | `/api/categories`               | Creates or updates a category                          |
+| `POST`   | `/api/categories/update-counts` | Recalculates category counts                           |
+| `POST`   | `/api/settings`                 | Creates or updates a setting                           |
+| `POST`   | `/api/data/import`              | Replaces posts and categories from a validated payload |
+| `POST`   | `/api/data/clear`               | Deletes all posts and categories                       |
 
-Guide requests are rate-limited to 5 requests per hour per client address. Never expose SMTP credentials to the browser.
+The educational guide is downloaded directly from the site and does not require an email address.
 
 ## 8. Security and Privacy
 
@@ -239,7 +230,7 @@ Current protections include:
 - Random session tokens stored as SHA-256 hashes in the database
 - HttpOnly, SameSite session cookies
 - Secure session cookies in production
-- Rate limiting on authentication and guide delivery
+- Rate limiting on authentication
 - JSON request size limit of 1 MB
 - Cookie consent stored locally under `legitways_cookie_consent`
 - Separate cookie and privacy policies
@@ -270,7 +261,7 @@ Before publishing new content:
 - Verify `ALLOWED_ORIGINS` contains only trusted production origins.
 - Confirm SMTP and database credentials are stored as secrets.
 - Confirm the guide PDF exists at `assets/legit-ways-guide.pdf`.
-- Test login, logout, blog loading, guide request handling, and cookie preferences.
+- Test login, logout, blog loading, direct guide download, and cookie preferences.
 
 ### Regularly
 
@@ -290,10 +281,6 @@ Check `/api/health`, `DATABASE_URL`, database reachability, and `DB_SSL`. The pu
 ### Admin cannot log in
 
 Confirm the database is available, the account exists, and the request is not rate-limited. Inspect the server logs for database errors. Do not disable authentication to work around the issue.
-
-### Guide email is not delivered
-
-Confirm SMTP host, port, secure mode, username, password, sender address, and the guide PDF path. Gmail and similar providers often require an app password rather than the account password.
 
 ### Browser reports a CSP violation
 

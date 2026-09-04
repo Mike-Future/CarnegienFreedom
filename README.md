@@ -11,7 +11,7 @@ This repository contains the CarnegienFreedom website and its dynamic blog manag
 - Responsive public website and educational resource pages
 - PostgreSQL-backed blog with categories, search, featured posts, tags, and related articles
 - Protected admin panel for creating, editing, previewing, importing, exporting, and deleting posts
-- Email delivery of the downloadable educational guide
+- Direct download of the educational guide without email collection
 - Cookie consent banner and cookie preferences
 - Privacy Policy, Cookie Policy, Terms of Use, and disclaimer pages
 - Helmet security headers and Content Security Policy
@@ -57,12 +57,6 @@ ALLOWED_ORIGINS=http://localhost:3000
 ADMIN_BOOTSTRAP_USERNAME=admin
 ADMIN_BOOTSTRAP_EMAIL=admin@example.com
 ADMIN_BOOTSTRAP_PASSWORD=replace-with-a-long-password
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=mailer@example.com
-SMTP_PASSWORD=replace-with-an-app-password
-SMTP_FROM=mailer@example.com
 ```
 
 For production, use managed secrets, `NODE_ENV=production`, `DB_SSL=true`, and set `ALLOWED_ORIGINS` to the exact HTTPS origins that should call the API.

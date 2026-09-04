@@ -6,7 +6,6 @@ const fs = require('fs/promises');
 const crypto = require('crypto');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
@@ -14,7 +13,6 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'blog-data.json');
-const GUIDE_FILE = path.join(__dirname, 'assets', 'legit-ways-guide.pdf');
 let databaseAvailable = false;
 const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
     .split(',')
@@ -59,14 +57,6 @@ const authRateLimit = rateLimit({
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     message: { error: 'Too many authentication attempts. Please try again later.' }
-});
-
-const guideRateLimit = rateLimit({
-    windowMs: 60 * 60 * 1000,
-    limit: 5,
-    standardHeaders: 'draft-8',
-    legacyHeaders: false,
-    message: { error: 'Too many guide requests. Please try again later.' }
 });
 
 app.use(express.static(path.join(__dirname), {
@@ -397,70 +387,6 @@ app.post('/api/auth/logout', async (req, res) => {
     const secureAttribute = isProduction ? '; Secure' : '';
     res.setHeader('Set-Cookie', `legitways_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secureAttribute}`);
     res.status(204).end();
-});
-
-app.post('/api/guide', guideRateLimit, async (req, res) => {
-    const email = String(req.body?.email || '').trim();
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-        return res.status(400).json({ error: 'A valid email address is required' });
-    }
-
-    const smtpHost = String(process.env.SMTP_HOST || '').trim();
-    const smtpUser = String(process.env.SMTP_USER || '').trim();
-    const smtpPassword = String(process.env.SMTP_PASSWORD || '').replace(/\s+/g, '');
-    const smtpFrom = String(process.env.SMTP_FROM || smtpUser).trim();
-    const smtpSecureSetting = String(process.env.SMTP_SECURE || '').trim().toLowerCase();
-
-    if (!smtpHost || !smtpUser || !smtpPassword) {
-        return res.status(503).json({ error: 'Email delivery is not configured' });
-    }
-
-    try {
-        const smtpPort = Number(process.env.SMTP_PORT || 587);
-        if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
-            return res.status(503).json({ error: 'Email delivery is misconfigured' });
-        }
-
-        const smtpSecure = smtpSecureSetting === 'true' || (smtpSecureSetting === '' && smtpPort === 465);
-        await fs.access(GUIDE_FILE);
-
-        const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: smtpPort,
-            secure: smtpSecure,
-            auth: {
-                user: smtpUser,
-                pass: smtpPassword
-            }
-        });
-
-        await transporter.sendMail({
-            from: smtpFrom,
-            envelope: { from: smtpUser, to: email },
-            to: email,
-            subject: 'Your LegitWays educational guide',
-            text: 'Thank you for requesting the LegitWays educational guide. It is attached to this email.',
-            attachments: [{
-                filename: 'legit-ways-guide.pdf',
-                path: GUIDE_FILE,
-                contentType: 'application/pdf'
-            }]
-        });
-
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Guide email failed:', {
-            code: error.code,
-            responseCode: error.responseCode,
-            message: error.message
-        });
-
-        if (error.code === 'ENOENT') {
-            return res.status(503).json({ error: 'The guide file is unavailable' });
-        }
-
-        res.status(502).json({ error: 'The email provider rejected the guide request' });
-    }
 });
 
 app.get('/api/posts', async (req, res) => {

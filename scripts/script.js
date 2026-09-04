@@ -277,10 +277,6 @@ document.addEventListener('keydown', (event) => {
 
 initializeCookieBanner();
 
-document.querySelectorAll('.email-form').forEach(form => {
-    form.addEventListener('submit', handleSubmit);
-});
-
 // Smooth Scroll for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -360,22 +356,6 @@ function downloadGuide(triggerButton) {
             setGuideDownloadState(triggerButton, false);
         }
     }, 1200);
-}
-
-// Form Handler for Lead Magnet
-function handleSubmit(e) {
-    e.preventDefault();
-
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    setGuideDownloadState(submitButton, true);
-
-    downloadGuide(submitButton);
-
-    setTimeout(() => {
-        if (e.target.reset) {
-            e.target.reset();
-        }
-    }, 500);
 }
 
 // Navbar Scroll Effect
