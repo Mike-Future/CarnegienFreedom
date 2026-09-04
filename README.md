@@ -33,6 +33,7 @@ This repository contains the CarnegienFreedom website and its dynamic blog manag
 ```bash
 npm install
 npm run db:start
+npm run build
 npm start
 ```
 
@@ -64,6 +65,10 @@ For production, use managed secrets, `NODE_ENV=production`, `DB_SSL=true`, and s
 ## Routes
 
 - `/` - public homepage
+- `/about` - team and organization information
+- `/blog` - blog listing
+- `/blog-post?slug=...` - article page
+- `/admin` - admin panel
 - `/about.html` - team and organization information
 - `/blog.html` - blog listing
 - `/blog-post.html?slug=...` - article page
@@ -103,6 +108,7 @@ The included [render.yaml](render.yaml) defines a Node web service. Configure th
 
 ```bash
 npm install
+npm run build
 npm start
 ```
 
@@ -118,6 +124,7 @@ node --check scripts/script.js
 node --check scripts/blog.js
 node --check scripts/blog-post.js
 node --check scripts/admin.js
+npm run build
 npm audit --omit=dev --audit-level=high
 ```
 
