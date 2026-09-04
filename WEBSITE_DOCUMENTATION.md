@@ -28,6 +28,7 @@ No frontend framework or build step is required. The browser loads the HTML, CSS
 | Path                       | Purpose                                                      |
 | -------------------------- | ------------------------------------------------------------ |
 | `index.html`               | Main landing page, direct guide download, cookie consent UI  |
+| `about.html`               | Team profiles and organization information                   |
 | `blog.html`                | Blog listing, category filters, search, and featured content |
 | `blog-post.html`           | Dynamic article page selected by `?slug=...`                 |
 | `contact.html`             | Contact page                                                 |

@@ -8,9 +8,12 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const next = require('next');
 require('dotenv').config();
 
 const app = express();
+const nextApp = next({ dev: process.env.NODE_ENV !== 'production', dir: __dirname });
+const nextHandle = nextApp.getRequestHandler();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'blog-data.json');
 let databaseAvailable = false;
@@ -599,25 +602,20 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/', (req, res) => {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.use((req, res) => {
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'API route not found' });
-    }
-
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-initDatabase()
+nextApp.prepare()
+    .then(() => initDatabase())
     .catch((error) => {
         console.error('Database unavailable; serving local blog data:', error.message);
     })
     .finally(() => {
+        app.use((req, res) => {
+            if (req.path.startsWith('/api/')) {
+                return res.status(404).json({ error: 'API route not found' });
+            }
+
+            return nextHandle(req, res);
+        });
+
         app.listen(PORT, () => {
             console.log(`Server started on http://localhost:${PORT}`);
         });

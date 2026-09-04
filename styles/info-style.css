@@ -76,6 +76,122 @@
     border-left: 4px solid var(--soft-sky-blue);
 }
 
+.contact-detail {
+    padding: 1.25rem;
+    background: var(--bg-light);
+    border-left: 4px solid var(--soft-sky-blue);
+}
+
+.about-hero span {
+    color: var(--opportunity-gold);
+}
+
+.about-container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+}
+
+.about-intro {
+    max-width: 760px;
+    margin: 0 auto 4rem;
+    text-align: center;
+}
+
+.about-intro h2,
+.section-heading h2 {
+    color: var(--deep-trust-blue);
+    margin: 0 0 1rem;
+}
+
+.about-intro p:not(.eyebrow),
+.section-heading p:not(.eyebrow) {
+    color: var(--text-muted);
+    line-height: 1.8;
+}
+
+.eyebrow {
+    color: var(--soft-sky-blue);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+}
+
+.section-heading {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.team-card {
+    overflow: hidden;
+    background: var(--knowledge-white);
+    border: 1px solid rgba(7, 26, 61, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba(7, 26, 61, 0.08);
+}
+
+.team-photo {
+    min-height: 230px;
+    background: linear-gradient(135deg, var(--surface-blue), rgba(217, 164, 65, 0.2));
+    border-bottom: 1px dashed rgba(7, 26, 61, 0.2);
+}
+
+.team-card__body {
+    padding: 1.5rem;
+}
+
+.profile-placeholder {
+    color: var(--deep-trust-blue);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.profile-role {
+    color: var(--soft-sky-blue);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.profile-bio {
+    min-height: 105px;
+    color: var(--text-muted);
+    font-size: 0.94rem;
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+}
+
+.linkedin-placeholder {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--soft-sky-blue);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.linkedin-placeholder::before {
+    content: "in";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 3px;
+    background: var(--soft-sky-blue);
+    color: white;
+    font-size: 0.75rem;
+}
+
 @media (max-width: 700px) {
     .info-hero h1 {
         font-size: 2rem;
@@ -83,5 +199,13 @@
 
     .info-container {
         padding: 3rem 1.25rem;
+    }
+
+    .about-container {
+        padding: 3rem 1.25rem;
+    }
+
+    .team-grid {
+        grid-template-columns: 1fr;
     }
 }

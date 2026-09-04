@@ -64,6 +64,7 @@ For production, use managed secrets, `NODE_ENV=production`, `DB_SSL=true`, and s
 ## Routes
 
 - `/` - public homepage
+- `/about.html` - team and organization information
 - `/blog.html` - blog listing
 - `/blog-post.html?slug=...` - article page
 - `/admin.html` - admin panel
