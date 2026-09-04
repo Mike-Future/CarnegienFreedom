@@ -39,6 +39,7 @@ CarnegienFreedom/
 ## ✨ Dynamic Features
 
 ### 1. **Dynamic Blog System**
+
 - ✅ Posts load instantly from IndexedDB
 - ✅ Real-time category filtering
 - ✅ Live search with debouncing
@@ -48,6 +49,7 @@ CarnegienFreedom/
 - ✅ Responsive grid layout
 
 ### 2. **Full CMS Admin Panel**
+
 - ✅ Secure password protection (SHA-256)
 - ✅ Create new blog posts
 - ✅ Edit existing posts
@@ -58,6 +60,7 @@ CarnegienFreedom/
 - ✅ Session management (24h timeout)
 
 ### 3. **Database Features (IndexedDB)**
+
 - ✅ Persistent storage (survives browser restarts)
 - ✅ Large data capacity (50MB+ per origin)
 - ✅ Fast queries with indexes
@@ -66,6 +69,7 @@ CarnegienFreedom/
 - ✅ Async/await API
 
 ### 4. **Content Management**
+
 - ✅ HTML content support
 - ✅ Image URL management
 - ✅ Tag system
@@ -79,12 +83,14 @@ CarnegienFreedom/
 ## 🛡️ Security Features
 
 ### Authentication
+
 - **SHA-256 password hashing** - Passwords never stored in plain text
 - **Session tokens** - Encrypted session storage
 - **24-hour session timeout** - Auto-logout for security
 - **Noindex/nofollow** - Admin panel hidden from search engines
 
 ### Data Protection
+
 - **Client-side only** - No data sent to servers
 - **HTTPS required** - Web Crypto API requires secure context
 - **No sensitive data** - Designed for public blog content
@@ -100,7 +106,8 @@ CarnegienFreedom/
 3. Copy the generated SHA-256 hash
 4. Open `admin.js` and find:
    ```javascript
-   const ADMIN_PASSWORD_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8';
+   const ADMIN_PASSWORD_HASH =
+     "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
    ```
 5. Replace with your new hash
 6. **DELETE `setup-password.html` immediately!**
@@ -108,6 +115,7 @@ CarnegienFreedom/
 ### Step 2: Deploy to Web Host
 
 Upload all files to any static web host:
+
 - GitHub Pages (free)
 - Netlify (free)
 - Vercel (free)
@@ -115,6 +123,7 @@ Upload all files to any static web host:
 - Traditional hosting
 
 **Requirements:**
+
 - HTTPS enabled (required for IndexedDB and Crypto API)
 - Modern browser support (Chrome, Firefox, Safari, Edge)
 
@@ -197,12 +206,14 @@ Your blog content supports full HTML:
 ### Exporting Data
 
 **Why export?**
+
 - Backup your content
 - Migrate to another site
 - Edit multiple posts at once
 - Version control your content
 
 **How to export:**
+
 1. Admin panel → "Export JSON" tab
 2. Click "Download File" or "Copy JSON"
 3. Save `blog-data.json` safely
@@ -210,12 +221,14 @@ Your blog content supports full HTML:
 ### Importing Data
 
 **When to import:**
+
 - Restoring from backup
 - Bulk editing posts
 - Migrating from another site
 - Initial setup with existing content
 
 **How to import:**
+
 1. Prepare your JSON file
 2. Admin panel → "Export JSON" tab
 3. Select file in "Import" section
@@ -240,16 +253,17 @@ Edit `db.js` to change default categories:
 
 ```javascript
 const defaultCategories = [
-    { id: 'scam-awareness', name: 'Scam Awareness', count: 0 },
-    { id: 'education', name: 'Education', count: 0 },
-    { id: 'opportunities', name: 'Opportunities', count: 0 },
-    { id: 'lifestyle', name: 'Lifestyle', count: 0 }
+  { id: "scam-awareness", name: "Scam Awareness", count: 0 },
+  { id: "education", name: "Education", count: 0 },
+  { id: "opportunities", name: "Opportunities", count: 0 },
+  { id: "lifestyle", name: "Lifestyle", count: 0 },
 ];
 ```
 
 ### Changing Admin Session Duration
 
 In `admin.js`, find:
+
 ```javascript
 if (sessionData.timestamp && (Date.now() - sessionData.timestamp) < 86400000) {
 ```
@@ -262,9 +276,9 @@ Add to `blog-post.js` in the `loadArticle()` function:
 
 ```javascript
 // Google Analytics
-gtag('event', 'article_view', {
-    article_title: currentPost.title,
-    article_category: currentPost.category
+gtag("event", "article_view", {
+  article_title: currentPost.title,
+  article_category: currentPost.category,
 });
 ```
 
@@ -272,16 +286,17 @@ gtag('event', 'article_view', {
 
 ## 🌐 Browser Compatibility
 
-| Browser | Version | Support |
-|---------|---------|---------|
-| Chrome | 90+ | ✅ Full |
-| Firefox | 88+ | ✅ Full |
-| Safari | 14+ | ✅ Full |
-| Edge | 90+ | ✅ Full |
-| Opera | 76+ | ✅ Full |
-| IE 11 | - | ❌ Not supported |
+| Browser | Version | Support          |
+| ------- | ------- | ---------------- |
+| Chrome  | 90+     | ✅ Full          |
+| Firefox | 88+     | ✅ Full          |
+| Safari  | 14+     | ✅ Full          |
+| Edge    | 90+     | ✅ Full          |
+| Opera   | 76+     | ✅ Full          |
+| IE 11   | -       | ❌ Not supported |
 
 **Required Features:**
+
 - IndexedDB 2.0+
 - Web Crypto API
 - ES6+ JavaScript
@@ -311,6 +326,7 @@ gtag('event', 'article_view', {
 ### Monitoring
 
 Check performance in Chrome DevTools:
+
 - Network tab: Monitor load times
 - Application → IndexedDB: Inspect data
 - Lighthouse: Audit performance
@@ -322,21 +338,25 @@ Check performance in Chrome DevTools:
 ### Common Issues
 
 **"Unable to load articles"**
+
 - Check browser console for errors
 - Verify `blog-data.json` exists
 - Try clearing IndexedDB and refreshing
 
 **Admin password not working**
+
 - Ensure you updated `ADMIN_PASSWORD_HASH` in `admin.js`
 - Check for typos in hash
 - Password is case-sensitive
 
 **Changes not appearing**
+
 - Hard refresh (Ctrl+Shift+R)
 - Check if IndexedDB is updating
 - Verify you're not in private/incognito mode
 
 **Images not loading**
+
 - Check image URLs are valid
 - Ensure CORS headers allow loading
 - Try different image source
@@ -348,8 +368,8 @@ Add to any page for debugging:
 ```javascript
 // Check IndexedDB status
 const db = await LegitWaysDB.initDB();
-console.log('Posts:', await db.getAllPosts());
-console.log('Categories:', await db.getAllCategories());
+console.log("Posts:", await db.getAllPosts());
+console.log("Categories:", await db.getAllCategories());
 ```
 
 ---
@@ -357,11 +377,11 @@ console.log('Categories:', await db.getAllCategories());
 ## 🎯 Future Enhancements
 
 Possible additions:
+
 - [ ] Service Worker for offline support
 - [ ] Image upload (via Base64 or external API)
 - [ ] Rich text editor (TinyMCE, Quill)
 - [ ] Comment system (Disqus integration)
-- [ ] Email subscriptions (ConvertKit API)
 - [ ] SEO meta tag editor
 - [ ] Post scheduling
 - [ ] Multi-author support
@@ -373,6 +393,7 @@ Possible additions:
 ## 📄 License & Usage
 
 This system is designed for:
+
 - Personal blogs
 - Small business websites
 - Educational projects
@@ -380,6 +401,7 @@ This system is designed for:
 - Documentation sites
 
 **Limitations:**
+
 - Client-side only (data stays in user's browser)
 - No multi-user support (single admin)
 - No server-side processing
@@ -399,6 +421,7 @@ This system is designed for:
 ## 📞 Support
 
 For issues or questions:
+
 1. Check browser console for error messages
 2. Verify all files are uploaded correctly
 3. Ensure HTTPS is enabled

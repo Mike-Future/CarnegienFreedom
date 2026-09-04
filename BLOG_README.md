@@ -194,4 +194,4 @@ For questions about:
 
 ---
 
-**Note**: This is a static blog system. For user comments, email subscriptions, or analytics, you'll need third-party services (e.g., Disqus for comments, ConvertKit for email, Google Analytics for tracking).
+**Note**: This is a static blog system. User comments and analytics would require separate third-party services.
