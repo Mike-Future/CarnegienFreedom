@@ -76,10 +76,63 @@
     border-left: 4px solid var(--soft-sky-blue);
 }
 
-.contact-detail {
-    padding: 1.25rem;
-    background: var(--bg-light);
-    border-left: 4px solid var(--soft-sky-blue);
+.contact-detail strong {
+    display: block;
+    color: var(--deep-trust-blue);
+    margin-bottom: 0.5rem;
+}
+
+.contact-detail p {
+    margin-bottom: 0.35rem;
+}
+
+.contact-detail small {
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.contact-intro {
+    max-width: 700px;
+    margin-bottom: 2.5rem;
+}
+
+.contact-intro h2 {
+    margin-top: 0;
+}
+
+.contact-topics {
+    margin-top: 3rem;
+}
+
+.contact-topic-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.contact-topic {
+    padding: 1.5rem;
+    background: var(--knowledge-white);
+    border: 1px solid rgba(7, 26, 61, 0.1);
+    border-radius: 8px;
+}
+
+.contact-topic>i {
+    color: var(--opportunity-gold);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.contact-topic h3 {
+    color: var(--deep-trust-blue);
+    font-size: 1.05rem;
+    margin: 0 0 0.5rem;
+}
+
+.contact-topic p {
+    color: var(--text-muted);
+    font-size: 0.94rem;
+    line-height: 1.7;
 }
 
 .about-hero span {
@@ -206,6 +259,10 @@
     }
 
     .team-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-topic-grid {
         grid-template-columns: 1fr;
     }
 }
