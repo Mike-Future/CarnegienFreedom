@@ -64,6 +64,29 @@
     margin: 1.5rem 0;
 }
 
+.why-carnegien-note {
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(7, 26, 61, 0.12);
+}
+
+.why-carnegien-note h2 {
+    margin-top: 0;
+}
+
+.why-carnegien-note p {
+    max-width: 780px;
+}
+
+.section-kicker {
+    color: var(--soft-sky-blue);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+}
+
 .contact-details {
     display: grid;
     gap: 1rem;
