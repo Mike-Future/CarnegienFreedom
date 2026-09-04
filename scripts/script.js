@@ -330,7 +330,7 @@ function setGuideDownloadState(button, isLoading) {
         button.classList.add('is-loading');
         button.style.pointerEvents = 'none';
     } else {
-        button.textContent = button.dataset.originalText || 'Get Free Guide';
+        button.textContent = button.dataset.originalText || 'Download Guide';
         button.removeAttribute('aria-busy');
         button.classList.remove('is-loading');
         button.style.pointerEvents = '';
