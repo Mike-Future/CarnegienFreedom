@@ -217,15 +217,15 @@ function renderTeamProfileFields(profiles) {
                 </div>
                 <div class="team-profile-actions">
                     <button type="button" class="btn-icon btn-view" data-team-action="view" data-team-index="${index}"
-                        title="View profile" aria-label="View profile">
+                        data-icon-label="View" title="View profile" aria-label="View profile">
                         <i class="fas fa-eye" aria-hidden="true"></i>
                     </button>
                     <button type="button" class="btn-icon btn-edit" data-team-action="edit" data-team-index="${index}"
-                        title="Edit profile" aria-label="Edit profile">
+                        data-icon-label="Edit" title="Edit profile" aria-label="Edit profile">
                         <i class="fas fa-pen-to-square" aria-hidden="true"></i>
                     </button>
                     <button type="button" class="btn-icon btn-delete" data-team-action="delete" data-team-index="${index}"
-                        title="Delete profile" aria-label="Delete profile">
+                        data-icon-label="Delete" title="Delete profile" aria-label="Delete profile">
                         <i class="fas fa-trash-can" aria-hidden="true"></i>
                     </button>
                 </div>
