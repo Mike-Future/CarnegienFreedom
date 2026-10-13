@@ -83,9 +83,9 @@
                     <i class="fas fa-external-link-alt"></i>
                     View Blog
                 </a>
-                <button class="btn btn-secondary" data-admin-action="download-document">
+                <button class="btn btn-secondary" data-admin-action="open-export">
                     <i class="fas fa-file-word"></i>
-                    Download Document
+                    Choose Posts to Download
                 </button>
                 <button class="btn btn-danger" data-admin-action="logout">
                     <i class="fas fa-sign-out-alt"></i>
@@ -304,14 +304,25 @@
             <div class="tab-content" id="exportTab">
                 <div class="instructions">
                     <h4><i class="fas fa-file-word"></i> Blog Document</h4>
-                    <p>Download all published posts as a Word-compatible document for reading, editing, or sharing.</p>
+                    <p>Select the published posts to include in a Word-compatible document.</p>
+                </div>
+                <div class="export-selection">
+                    <label class="export-select-all" for="exportSelectAll">
+                        <input type="checkbox" id="exportSelectAll">
+                        Select all published posts
+                    </label>
+                    <div class="export-post-list" id="exportPostList" aria-label="Published posts to export">
+                        <p class="empty-state">Loading published posts...</p>
+                    </div>
                 </div>
                 <div class="export-actions">
-                    <button class="btn btn-export" data-admin-action="download-document">
+                    <button class="btn btn-export" id="downloadSelectedPosts" data-admin-action="download-document"
+                        disabled>
                         <i class="fas fa-file-word"></i> Download Document
                     </button>
                 </div>
-                <div class="preview-content" id="exportDocumentStatus">The document will include all published posts.
+                <div class="export-status" id="exportDocumentStatus" role="status" aria-live="polite">
+                    Select one or more posts to download.
                 </div>
             </div>
         </div>
@@ -319,7 +330,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
     <script src="scripts/db.js?v=20260906"></script>
-    <script src="scripts/admin.js?v=20260906"></script>
+    <script src="scripts/admin.js?v=20261013"></script>
 </body>
 
 </html>

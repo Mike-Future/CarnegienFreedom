@@ -834,6 +834,66 @@ body {
     margin-right: 0.5rem;
 }
 
+.export-selection {
+    border: 1px solid #d7e0ec;
+    border-radius: 8px;
+    background: white;
+}
+
+.export-select-all {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #d7e0ec;
+    font-weight: 600;
+}
+
+.export-post-list {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.export-post-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+}
+
+.export-post-option:last-child {
+    border-bottom: 0;
+}
+
+.export-post-option:hover {
+    background: var(--bg-light);
+}
+
+.export-post-option__details {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.export-post-option__title {
+    color: var(--deep-trust-blue);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.export-post-option__meta {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.export-status {
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
 .post-actions,
 .export-actions {
     display: flex;

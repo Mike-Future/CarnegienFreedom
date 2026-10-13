@@ -867,27 +867,77 @@ ${articles || '<p>No published posts available.</p>'}
 
 async function updateDocumentStatus() {
     const posts = await db.getAllPosts();
-    const output = document.getElementById('exportDocumentStatus');
-    if (output) {
-        output.textContent = `${posts.length} published ${posts.length === 1 ? 'post' : 'posts'} ready to download as a document.`;
+    const postList = document.getElementById('exportPostList');
+    const selectedIds = new Set(Array.from(postList?.querySelectorAll('input[name="exportPost"]:checked') || [], input => input.value));
+
+    if (postList) {
+        const sortedPosts = [...posts].sort((first, second) => new Date(second.date) - new Date(first.date));
+        postList.innerHTML = sortedPosts.length
+            ? sortedPosts.map(post => `
+                <label class="export-post-option">
+                    <input type="checkbox" name="exportPost" value="${escapeAttribute(post.id)}"${selectedIds.has(String(post.id)) ? ' checked' : ''}>
+                    <span class="export-post-option__details">
+                        <span class="export-post-option__title">${escapeHTML(post.title)}</span>
+                        <span class="export-post-option__meta">${escapeHTML(post.categoryLabel)} · ${escapeHTML(formatDate(post.date))}</span>
+                    </span>
+                </label>
+            `).join('')
+            : '<p class="empty-state">No published posts are available to export.</p>';
     }
+
+    updateExportSelectionStatus();
 }
 
 async function downloadDocument() {
+    const selectedIds = new Set(Array.from(document.querySelectorAll('#exportPostList input[name="exportPost"]:checked'), input => input.value));
+    if (selectedIds.size === 0) {
+        showNotification('Select at least one post to download.');
+        return;
+    }
+
     const posts = await db.getAllPosts();
-    const documentHTML = buildDocumentHTML(posts);
+    const selectedPosts = posts.filter(post => selectedIds.has(String(post.id)));
+    if (selectedPosts.length === 0) {
+        await updateDocumentStatus();
+        showNotification('The selected posts are no longer available.');
+        return;
+    }
+
+    const documentHTML = buildDocumentHTML(selectedPosts);
     const blob = new Blob([documentHTML], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'carnegienfreedom-blog.doc';
+    a.download = selectedPosts.length === 1
+        ? `carnegienfreedom-${selectedPosts[0].slug || 'post'}.doc`
+        : 'carnegienfreedom-selected-posts.doc';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showNotification('Blog document downloaded.');
+    showNotification(`${selectedPosts.length} ${selectedPosts.length === 1 ? 'post' : 'posts'} downloaded.`);
+}
+
+function updateExportSelectionStatus() {
+    const checkboxes = Array.from(document.querySelectorAll('#exportPostList input[name="exportPost"]'));
+    const selectedCount = checkboxes.filter(input => input.checked).length;
+    const selectAll = document.getElementById('exportSelectAll');
+    const downloadButton = document.getElementById('downloadSelectedPosts');
+    const output = document.getElementById('exportDocumentStatus');
+
+    if (selectAll) {
+        selectAll.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
+        selectAll.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
+        selectAll.disabled = checkboxes.length === 0;
+    }
+    if (downloadButton) downloadButton.disabled = selectedCount === 0;
+    if (output) {
+        output.textContent = selectedCount
+            ? `${selectedCount} of ${checkboxes.length} ${checkboxes.length === 1 ? 'post' : 'posts'} selected.`
+            : `${checkboxes.length} published ${checkboxes.length === 1 ? 'post' : 'posts'} available. Select posts to download.`;
+    }
 }
 
 // ==================== UI UTILITIES ====================
@@ -982,12 +1032,21 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             const action = button.dataset.adminAction;
             if (action === 'download-document') downloadDocument();
+            if (action === 'open-export') switchTab('export');
             if (action === 'logout') logout();
             if (action === 'preview') previewPost();
             if (action === 'clear-form') clearForm();
             if (action === 'close-preview') closePreview();
             if (action === 'add-team-profile') addTeamProfile();
         });
+    });
+
+    document.getElementById('exportPostList')?.addEventListener('change', updateExportSelectionStatus);
+    document.getElementById('exportSelectAll')?.addEventListener('change', event => {
+        document.querySelectorAll('#exportPostList input[name="exportPost"]').forEach(input => {
+            input.checked = event.target.checked;
+        });
+        updateExportSelectionStatus();
     });
 
     document.getElementById('documentFile')?.addEventListener('change', (event) => {
