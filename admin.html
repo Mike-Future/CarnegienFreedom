@@ -118,10 +118,7 @@
 
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab-btn active" data-tab="add">
-                    <i class="fas fa-plus"></i> Add New Post
-                </button>
-                <button class="tab-btn" data-tab="manage">
+                <button class="tab-btn active" data-tab="manage">
                     <i class="fas fa-list"></i> Manage Posts
                 </button>
                 <button class="tab-btn" data-tab="team">
@@ -174,127 +171,133 @@
                 </div>
             </div>
 
-            <!-- Add Post Tab -->
-            <div class="tab-content active" id="addTab">
-                <div class="instructions">
-                    <h4><i class="fas fa-info-circle"></i> Publish a New Blog Post</h4>
-                    <ol>
-                        <li>Fill out the form below with your post details</li>
-                        <li>Upload your article document</li>
-                        <li>Click "Preview" to see how it will look</li>
-                        <li>When ready, click "Publish Post" to save it to the database</li>
-                        <li>Find published posts in "Manage Posts" to edit or delete them</li>
-                        <li>Your post will appear on the public blog immediately</li>
-                    </ol>
-                </div>
-
-                <div class="success-message" id="successMessage">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Post published successfully and is now live.</span>
-                </div>
-
-                <form id="postForm">
-                    <div class="form-section">
-                        <h3><i class="fas fa-heading"></i> Basic Information</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Post Title <span>*</span></label>
-                                <input type="text" id="postTitle" required
-                                    placeholder="e.g., How to Spot Online Job Scams">
-                                <small>This appears as the main headline</small>
-                            </div>
-                            <div class="form-group">
-                                <label>URL Slug <span>*</span></label>
-                                <input type="text" id="postSlug" required
-                                    placeholder="e.g., how-to-spot-online-job-scams">
-                                <small>URL-friendly version (auto-generated from title)</small>
-                            </div>
-                            <div class="form-group">
-                                <label>Category <span>*</span></label>
-                                <select id="postCategory" required>
-                                    <option value="">Select category...</option>
-                                    <option value="scam-awareness">Scam Awareness</option>
-                                    <option value="education">Education</option>
-                                    <option value="opportunities">Opportunities</option>
-                                    <option value="lifestyle">Lifestyle</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Author <span>*</span></label>
-                                <input type="text" id="postAuthor" required readonly
-                                    placeholder="Current admin username">
-                            </div>
-                            <div class="form-group">
-                                <label>Read Time <span>*</span></label>
-                                <input type="text" id="postReadTime" required placeholder="e.g., 5 min read">
-                            </div>
-                            <div class="form-group">
-                                <label>Featured Image URL</label>
-                                <input type="url" id="postImage" placeholder="https://images.unsplash.com/...">
-                                <small>Use Unsplash or similar high-quality image source</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3><i class="fas fa-align-left"></i> Content</h3>
-                        <div class="form-group full-width">
-                            <label>Excerpt <span>*</span></label>
-                            <textarea id="postExcerpt" required maxlength="300"
-                                placeholder="Brief summary for preview cards (max 300 chars)"></textarea>
-                            <div class="char-count"><span id="excerptCount">0</span>/300</div>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Article Document <span>*</span></label>
-                            <input type="file" id="documentFile" accept=".docx,.txt" required>
-                            <input type="hidden" id="postContent">
-                            <small>Upload a Microsoft Word (.docx) or plain text (.txt) document. Its content will be
-                                used for the article.</small>
-                            <div class="document-status" id="documentStatus">No document selected.</div>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Tags (comma-separated)</label>
-                            <input type="text" id="postTags" placeholder="scam awareness, online safety, jobs">
-                            <small>Helps with search and related articles</small>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="postFeatured" class="featured-checkbox">
-                                Mark as Featured Post
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="post-actions">
-                        <button type="button" class="btn btn-secondary btn-preview" data-admin-action="preview">
-                            <i class="fas fa-eye"></i> Preview
-                        </button>
-                        <button type="submit" class="btn btn-publish">
-                            <i class="fas fa-paper-plane"></i> Publish Post
-                        </button>
-                        <button type="button" class="btn btn-secondary" data-admin-action="clear-form">
-                            <i class="fas fa-trash"></i> Clear
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Preview Section -->
-                <div class="preview-section is-hidden" id="previewSection">
-                    <div class="preview-header">
-                        <h3>Preview</h3>
-                        <button class="btn btn-secondary" data-admin-action="close-preview">
-                            <i class="fas fa-times"></i> Close
-                        </button>
-                    </div>
-                    <div class="preview-content" id="previewContent">
-                        <!-- Preview renders here -->
-                    </div>
-                </div>
-
-            </div>
-
             <!-- Manage Posts Tab -->
-            <div class="tab-content" id="manageTab">
+            <div class="tab-content active" id="manageTab">
+                <div class="manage-post-toolbar">
+                    <button type="button" class="btn btn-publish" data-admin-action="open-post-form">
+                        <i class="fas fa-plus"></i> Add New Post
+                    </button>
+                </div>
+                <div class="post-editor is-hidden" id="postEditor">
+                    <div class="instructions">
+                        <h4><i class="fas fa-info-circle"></i> Publish a New Blog Post</h4>
+                        <ol>
+                            <li>Fill out the form below with your post details</li>
+                            <li>Upload your article document</li>
+                            <li>Click "Preview" to see how it will look</li>
+                            <li>When ready, click "Publish Post" to save it to the database</li>
+                            <li>Find published posts in "Manage Posts" to edit or delete them</li>
+                            <li>Your post will appear on the public blog immediately</li>
+                        </ol>
+                    </div>
+
+                    <div class="success-message" id="successMessage">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Post published successfully and is now live.</span>
+                    </div>
+
+                    <form id="postForm">
+                        <div class="form-section">
+                            <h3><i class="fas fa-heading"></i> Basic Information</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Post Title <span>*</span></label>
+                                    <input type="text" id="postTitle" required
+                                        placeholder="e.g., How to Spot Online Job Scams">
+                                    <small>This appears as the main headline</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>URL Slug <span>*</span></label>
+                                    <input type="text" id="postSlug" required
+                                        placeholder="e.g., how-to-spot-online-job-scams">
+                                    <small>URL-friendly version (auto-generated from title)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Category <span>*</span></label>
+                                    <select id="postCategory" required>
+                                        <option value="">Select category...</option>
+                                        <option value="scam-awareness">Scam Awareness</option>
+                                        <option value="education">Education</option>
+                                        <option value="opportunities">Opportunities</option>
+                                        <option value="lifestyle">Lifestyle</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Author <span>*</span></label>
+                                    <input type="text" id="postAuthor" required readonly
+                                        placeholder="Current admin username">
+                                </div>
+                                <div class="form-group">
+                                    <label>Read Time <span>*</span></label>
+                                    <input type="text" id="postReadTime" required placeholder="e.g., 5 min read">
+                                </div>
+                                <div class="form-group">
+                                    <label>Featured Image URL</label>
+                                    <input type="url" id="postImage" placeholder="https://images.unsplash.com/...">
+                                    <small>Use Unsplash or similar high-quality image source</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-align-left"></i> Content</h3>
+                            <div class="form-group full-width">
+                                <label>Excerpt <span>*</span></label>
+                                <textarea id="postExcerpt" required maxlength="300"
+                                    placeholder="Brief summary for preview cards (max 300 chars)"></textarea>
+                                <div class="char-count"><span id="excerptCount">0</span>/300</div>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Article Document <span>*</span></label>
+                                <input type="file" id="documentFile" accept=".docx,.txt" required>
+                                <input type="hidden" id="postContent">
+                                <small>Upload a Microsoft Word (.docx) or plain text (.txt) document. Its content will
+                                    be
+                                    used for the article.</small>
+                                <div class="document-status" id="documentStatus">No document selected.</div>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Tags (comma-separated)</label>
+                                <input type="text" id="postTags" placeholder="scam awareness, online safety, jobs">
+                                <small>Helps with search and related articles</small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="postFeatured" class="featured-checkbox">
+                                    Mark as Featured Post
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="post-actions">
+                            <button type="button" class="btn btn-secondary btn-preview" data-admin-action="preview">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                            <button type="submit" class="btn btn-publish">
+                                <i class="fas fa-paper-plane"></i> Publish Post
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-admin-action="clear-form">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-admin-action="cancel-post">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Preview Section -->
+                    <div class="preview-section is-hidden" id="previewSection">
+                        <div class="preview-header">
+                            <h3>Preview</h3>
+                            <button class="btn btn-secondary" data-admin-action="close-preview">
+                                <i class="fas fa-times"></i> Close
+                            </button>
+                        </div>
+                        <div class="preview-content" id="previewContent">
+                            <!-- Preview renders here -->
+                        </div>
+                    </div>
+                </div>
                 <div class="posts-list" id="postsList">
                     <!-- Posts load here dynamically -->
                 </div>

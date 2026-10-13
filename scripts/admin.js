@@ -608,6 +608,7 @@ async function savePost() {
 
         // Clear form and reset state
         clearForm();
+        document.getElementById('postEditor')?.classList.add('is-hidden');
 
         // Switch to manage tab
         switchTab('manage');
@@ -711,6 +712,17 @@ function clearForm() {
     }
 }
 
+function openPostForm() {
+    clearForm();
+    document.getElementById('postEditor')?.classList.remove('is-hidden');
+    document.getElementById('postForm')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closePostForm() {
+    clearForm();
+    document.getElementById('postEditor')?.classList.add('is-hidden');
+}
+
 // ==================== POSTS MANAGEMENT ====================
 
 async function renderPostsList() {
@@ -798,8 +810,9 @@ async function editPost(id) {
     const submitBtn = document.querySelector('#postForm button[type="submit"]');
     submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Post';
 
-    // Switch to add tab
-    switchTab('add');
+    // Open the editor within Manage Posts
+    switchTab('manage');
+    document.getElementById('postEditor')?.classList.remove('is-hidden');
 
     // Scroll to form
     document.getElementById('postForm').scrollIntoView({ behavior: 'smooth' });
@@ -1033,6 +1046,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const action = button.dataset.adminAction;
             if (action === 'download-document') downloadDocument();
             if (action === 'open-export') switchTab('export');
+            if (action === 'open-post-form') openPostForm();
+            if (action === 'cancel-post') closePostForm();
             if (action === 'logout') logout();
             if (action === 'preview') previewPost();
             if (action === 'clear-form') clearForm();

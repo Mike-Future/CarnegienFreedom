@@ -901,6 +901,12 @@ body {
     margin-top: 2rem;
 }
 
+.manage-post-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
 .export-actions {
     gap: 0.5rem;
     margin-bottom: 1rem;
