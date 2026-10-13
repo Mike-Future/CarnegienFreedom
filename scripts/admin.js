@@ -218,15 +218,15 @@ function renderTeamProfileFields(profiles) {
                 <div class="team-profile-actions">
                     <button type="button" class="btn-icon btn-view" data-team-action="view" data-team-index="${index}"
                         data-icon-label="View" title="View profile" aria-label="View profile">
-                        <i class="fas fa-eye" aria-hidden="true"></i>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                     <button type="button" class="btn-icon btn-edit" data-team-action="edit" data-team-index="${index}"
                         data-icon-label="Edit" title="Edit profile" aria-label="Edit profile">
-                        <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
                     </button>
                     <button type="button" class="btn-icon btn-delete" data-team-action="delete" data-team-index="${index}"
                         data-icon-label="Delete" title="Delete profile" aria-label="Delete profile">
-                        <i class="fas fa-trash-can" aria-hidden="true"></i>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
                     </button>
                 </div>
             </div>
@@ -743,13 +743,13 @@ async function renderPostsList() {
             </div>
             <div class="post-actions">
                 <button type="button" class="btn-icon btn-view" onclick="viewPost('${post.slug}')" title="View post" aria-label="View post">
-                    <i class="fas fa-eye" aria-hidden="true"></i>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
                 <button type="button" class="btn-icon btn-edit" onclick="editPost('${post.id}')" title="Edit post" aria-label="Edit post">
-                    <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
                 </button>
                 <button type="button" class="btn-icon btn-delete" onclick="deletePost('${post.id}')" title="Delete post" aria-label="Delete post">
-                    <i class="fas fa-trash-can" aria-hidden="true"></i>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
                 </button>
             </div>
         </div>
