@@ -476,6 +476,8 @@ if (navbar) {
 const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Privacy policy page interactions
+const privacyScrollShell = document.querySelector('.privacy-scroll-shell');
+const privacyMain = document.querySelector('.privacy-main');
 const backToTop = document.getElementById('backToTop');
 const privacySections = Array.from(document.querySelectorAll('.section'));
 const privacyTocLinks = Array.from(document.querySelectorAll('.privacy-toc a'));
@@ -501,6 +503,18 @@ function updateScrollEffects() {
         });
     }
 
+    if (privacyScrollShell && privacyMain) {
+        if (prefersReducedMotion) {
+            privacyMain.style.transform = 'translateY(0px)';
+            return;
+        }
+
+        const shellRect = privacyScrollShell.getBoundingClientRect();
+        const viewportOffset = Math.max(0, -shellRect.top + 80);
+        const maxViewportTravel = Math.max(0, window.innerHeight * 0.25);
+        const translate = Math.min(viewportOffset * 0.55, maxViewportTravel);
+        privacyMain.style.transform = `translateY(-${translate}px)`;
+    }
 }
 
 let scrollFrame = null;
