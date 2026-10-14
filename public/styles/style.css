@@ -1340,6 +1340,10 @@ footer {
         display: block;
     }
 
+    .nav-container>.nav-cta {
+        display: none;
+    }
+
     .privacy-sidebar {
         order: 2;
     }
