@@ -5,8 +5,8 @@ let db = null;
 let currentPost = null;
 let allPosts = [];
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', async () => {
+// Initialize whether this script loads before or after DOMContentLoaded.
+async function initializeBlogPost() {
     try {
         // Initialize database
         const dbAPI = await LegitWaysDB.initDB();
@@ -18,7 +18,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Failed to initialize article:', error);
         showError('Unable to load article. Please try again later.');
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBlogPost, { once: true });
+} else {
+    initializeBlogPost();
+}
 
 // Load specific article from URL parameter
 async function loadArticle() {

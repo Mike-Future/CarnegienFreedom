@@ -15,34 +15,9 @@
     <link rel="stylesheet" href="styles/blog-post-style.css">
 </head>
 
-<body>
+<body data-shared-scripts="scripts/script.js scripts/db.js scripts/blog-post.js">
     <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <div class="logo-icon"><img src="images/logo.png" alt="CarnegienFreedom logo"></div>
-                <span class="logo-text">CarnegienFreedom</span>
-            </a>
-            <ul class="nav-links">
-                <li><a href="about.html">About</a></li>
-                <li><a href="blog.html" class="active">Blog</a></li>
-                <li><a href="index.html#learn">Learn</a></li>
-                <li><a href="contact.html">Contact</a></li>
-            </ul>
-            <a href="index.html#guide" class="nav-cta">Download Guide, No Email</a>
-            <button type="button" class="mobile-menu-toggle" aria-label="Open navigation menu">
-                <i class="fas fa-bars"></i>
-        </div>
-        </div>
-    </nav>
-
-    <div class="mobile-menu" id="mobileMenu">
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="blog.html">Blog</a></li>
-            <li><a href="index.html#guide" class="nav-cta">Download Guide, No Email</a></li>
-        </ul>
-    </div>
+    <div data-shared-header></div>
 
     <!-- Article Header -->
     <header class="article-header" id="articleHeader">
@@ -68,57 +43,11 @@
     </section>
 
     <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <h3>CarnegienFreedom</h3>
-                    <p>Plan, earn, and live free with education-first guidance to help you make smarter financial
-                        decisions and avoid scams.</p>
-                    <div class="social-links">
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Twitter/X"><i class="fab fa-x-twitter"></i></a>
-                        <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
-                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h4>Company</h4>
-                    <ul>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="core-values.html">Core Values</a></li>
-                        <li><a href="blog.html">Blog</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="index.html#guide">Download Guide</a></li>
-                        <li><a href="index.html#learn">Educational Content</a></li>
-                        <li><a href="scam-awareness.html">Scam Awareness</a></li>
-                        <li><a href="success-stories.html">Success Stories</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Legal</h4>
-                    <ul>
-                        <li><a href="disclaimer.html">Disclaimer</a></li>
-                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
-                        <li><a href="cookie-policy.html">Cookie Policy</a></li>
-                        <li><a href="terms-of-use.html">Terms of Use</a></li>
-                        <li><a href="earnings-disclaimer.html">Earning Disclaimer</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 CarnegienFreedom. All rights reserved. | Educational content only.</p>
-            </div>
-        </div>
-    </footer>
+    <div data-shared-footer></div>
 
-    <script src="scripts/db.js"></script>
-    <script src="scripts/blog-post.js"></script>
+
+
+    <script type="module" src="scripts/shared-layout.js?v=20261014"></script>
 </body>
 
 </html>

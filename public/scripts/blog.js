@@ -5,8 +5,8 @@ let db = null;
 let allPosts = [];
 let filteredPosts = [];
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', async () => {
+// Initialize whether this script loads before or after DOMContentLoaded.
+async function initializeBlog() {
     try {
         // Initialize database
         const dbAPI = await LegitWaysDB.initDB();
@@ -27,7 +27,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBlog, { once: true });
+} else {
+    initializeBlog();
+}
 
 // Load blog posts from IndexedDB
 async function loadBlogPosts() {
