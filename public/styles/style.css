@@ -1014,6 +1014,7 @@ footer {
 .social-links {
     display: flex;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .footer-social h4 {
