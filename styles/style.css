@@ -1182,8 +1182,6 @@ footer {
 .privacy-main {
     position: relative;
     max-width: 820px;
-    will-change: transform;
-    transition: transform 0.18s ease-out;
 }
 
 .privacy-main .section {
