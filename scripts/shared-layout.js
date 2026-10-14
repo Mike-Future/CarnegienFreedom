@@ -43,8 +43,8 @@ try {
     }
 
     const [header, footer] = await Promise.all([
-        fetchPartial('../partials/header.html'),
-        fetchPartial('../partials/footer.html')
+        fetchPartial('../partials/header.html?v=20261014-footer-social'),
+        fetchPartial('../partials/footer.html?v=20261014-footer-social')
     ]);
     headerTarget.outerHTML = header;
     footerTarget.outerHTML = footer;

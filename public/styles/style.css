@@ -995,8 +995,8 @@ footer {
 
 .footer-content {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 3rem;
+    grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(110px, 1fr));
+    gap: 2rem;
     margin-bottom: 3rem;
 }
 
@@ -1014,6 +1014,16 @@ footer {
 .social-links {
     display: flex;
     gap: 1rem;
+}
+
+.footer-social h4 {
+    color: white;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.footer-social .social-links {
+    min-height: 40px;
 }
 
 .social-links a {
