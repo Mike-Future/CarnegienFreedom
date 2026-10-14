@@ -1140,11 +1140,13 @@ footer {
 }
 
 .privacy-sidebar {
-    position: relative;
+    position: static !important;
+    align-self: start;
 }
 
 .privacy-toc {
-    position: static;
+    position: static !important;
+    top: auto !important;
     background: var(--bg-light);
     border: 1px solid rgba(7, 26, 61, 0.06);
     border-radius: 18px;
