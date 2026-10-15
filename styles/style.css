@@ -1043,7 +1043,7 @@ footer {
     min-height: 40px;
 }
 
-.social-links a {
+.social-platform {
     width: 40px;
     height: 40px;
     background: rgba(255, 255, 255, 0.1);
@@ -1052,12 +1052,42 @@ footer {
     align-items: center;
     justify-content: center;
     color: white;
+    cursor: pointer;
     transition: var(--transition-smooth);
 }
 
-.social-links a:hover {
+.social-platform:hover,
+.social-platform:focus-visible {
     background: var(--growth-green);
     transform: translateY(-3px);
+}
+
+.social-platform:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 3px;
+}
+
+.social-platform svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    fill: currentColor;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.social-platform__youtube-outline {
+    fill: none;
+}
+
+.social-platform:nth-child(3) svg {
+    fill: none;
+}
+
+.social-platform__dot {
+    fill: currentColor;
 }
 
 .footer-links h4 {
