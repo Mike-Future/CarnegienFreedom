@@ -149,8 +149,12 @@ async function logout() {
 function toggleAuthMode() {
     registrationMode = !registrationMode;
     const usernameInput = document.getElementById('adminUsername');
+    const identifierInput = document.getElementById('adminEmail');
     document.getElementById('usernameField').classList.toggle('is-hidden', !registrationMode);
     usernameInput.required = registrationMode;
+    identifierInput.type = registrationMode ? 'email' : 'text';
+    identifierInput.placeholder = registrationMode ? 'Admin email' : 'Admin email or username';
+    identifierInput.autocomplete = registrationMode ? 'email' : 'username';
     document.getElementById('adminPassword').autocomplete = registrationMode ? 'new-password' : 'current-password';
     document.getElementById('authPrompt').textContent = registrationMode
         ? 'Request admin access for super admin approval'

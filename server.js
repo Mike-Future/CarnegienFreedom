@@ -383,27 +383,38 @@ app.post('/api/auth/register', authRateLimit, async (req, res) => {
 });
 
 app.post('/api/auth/login', authRateLimit, async (req, res) => {
-    const email = String(req.body?.email || '').trim().toLowerCase();
+    const identifier = String(req.body?.email || req.body?.identifier || '').trim().toLowerCase();
     const password = String(req.body?.password || '');
     let result;
     try {
         result = await pool.query(
-            'SELECT id, username, email, password_hash, approved, is_super_admin, suspended FROM admin_users WHERE email = $1 LIMIT 1',
-            [email]
+            `SELECT id, username, email, password_hash, approved, is_super_admin, suspended
+             FROM admin_users
+             WHERE LOWER(email) = $1 OR LOWER(username) = $1
+             ORDER BY CASE WHEN LOWER(email) = $1 THEN 0 ELSE 1 END`,
+            [identifier]
         );
     } catch (error) {
         return res.status(503).json({ error: 'Database is unavailable' });
     }
 
-    if (!result.rows[0] || !(await bcrypt.compare(password, result.rows[0].password_hash))) {
+    let account = null;
+    for (const candidate of result.rows) {
+        if (await bcrypt.compare(password, candidate.password_hash)) {
+            account = candidate;
+            break;
+        }
+    }
+
+    if (!account) {
         return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    if (!result.rows[0].approved) {
+    if (!account.approved) {
         return res.status(403).json({ error: 'Your admin account is waiting for super admin approval.' });
     }
 
-    if (result.rows[0].suspended) {
+    if (account.suspended) {
         return res.status(403).json({ error: 'Your admin account has been suspended by a super admin.' });
     }
 
@@ -411,17 +422,17 @@ app.post('/api/auth/login', authRateLimit, async (req, res) => {
     await pool.query(
         `INSERT INTO admin_sessions (token_hash, user_id, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '24 hours')`,
-        [hashSessionToken(token), result.rows[0].id]
+        [hashSessionToken(token), account.id]
     );
     setSessionCookie(res, token);
     res.json({
         user: {
-            id: result.rows[0].id,
-            username: result.rows[0].username,
-            email: result.rows[0].email,
-            approved: result.rows[0].approved,
-            isSuperAdmin: result.rows[0].is_super_admin,
-            suspended: result.rows[0].suspended
+            id: account.id,
+            username: account.username,
+            email: account.email,
+            approved: account.approved,
+            isSuperAdmin: account.is_super_admin,
+            suspended: account.suspended
         }
     });
 });
