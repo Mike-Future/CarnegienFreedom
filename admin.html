@@ -22,18 +22,19 @@
             <h1>CarnegienFreedom Admin</h1>
             <p id="authPrompt">Log in to manage blog posts</p>
 
-            <form id="loginForm">
+            <form id="loginForm" autocomplete="on">
                 <div class="password-input-wrapper is-hidden" id="usernameField">
                     <i class="fas fa-user"></i>
                     <input type="text" id="adminUsername" placeholder="Choose a username" autocomplete="username">
                 </div>
                 <div class="password-input-wrapper" id="emailField">
                     <i class="fas fa-envelope"></i>
-                    <input type="email" id="adminEmail" placeholder="Admin email" autocomplete="email" required>
+                    <input type="email" id="adminEmail" name="email" placeholder="Admin email" autocomplete="username"
+                        autocapitalize="none" spellcheck="false" required>
                 </div>
                 <div class="password-input-wrapper">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="adminPassword" placeholder="Enter admin password"
+                    <input type="password" id="adminPassword" name="password" placeholder="Enter admin password"
                         autocomplete="current-password" required>
                     <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password"
                         aria-pressed="false" title="Show password">
