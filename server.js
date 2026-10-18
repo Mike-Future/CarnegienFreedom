@@ -198,7 +198,7 @@ async function initDatabase() {
             page_key TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             body TEXT NOT NULL,
-            updated_by UUID NOT NULL REFERENCES admin_users(id),
+            updated_by UUID REFERENCES admin_users(id) ON DELETE SET NULL,
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
     `);
@@ -209,10 +209,10 @@ async function initDatabase() {
             page_key TEXT NOT NULL,
             title TEXT NOT NULL,
             body TEXT NOT NULL,
-            requested_by UUID NOT NULL REFERENCES admin_users(id),
+            requested_by UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
             status TEXT NOT NULL DEFAULT 'pending'
                 CHECK (status IN ('pending', 'approved', 'rejected')),
-            resolved_by UUID REFERENCES admin_users(id),
+            resolved_by UUID REFERENCES admin_users(id) ON DELETE SET NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             resolved_at TIMESTAMPTZ
         );
@@ -486,6 +486,7 @@ app.get('/api/auth/session', requireAdmin, (req, res) => {
 });
 
 app.get('/api/page-content/:pageKey', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
     if (!PAGE_CONTENT_KEYS.has(req.params.pageKey)) {
         return res.status(404).json({ error: 'Page content not found' });
     }
