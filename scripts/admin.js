@@ -9,6 +9,45 @@ let uploadedDocumentName = '';
 let currentAdminUser = null;
 
 const defaultTeamProfiles = [];
+const pageContentLabels = {
+    home: 'Home',
+    about: 'About',
+    'core-values': 'Core Values',
+    contact: 'Contact',
+    'cookie-policy': 'Cookie Policy',
+    disclaimer: 'Disclaimer',
+    'earnings-disclaimer': 'Earnings Disclaimer',
+    'privacy-policy': 'Privacy Policy',
+    'scam-awareness': 'Scam Awareness',
+    'success-stories': 'Success Stories',
+    'terms-of-use': 'Terms of Use'
+};
+
+async function pageContentRequest(path, options = {}) {
+    const response = await fetch(path, {
+        credentials: 'same-origin',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+    const text = await response.text();
+    let result = null;
+    if (text) {
+        try {
+            result = JSON.parse(text);
+        } catch (error) {
+            throw new Error(`Page content service returned an invalid response (${response.status}).`);
+        }
+    }
+    if (!response.ok) {
+        const error = new Error(result?.error || 'Page content request failed');
+        error.status = response.status;
+        throw error;
+    }
+    return result;
+}
 
 async function authRequest(path, body) {
     const response = await fetch(path, {
@@ -94,9 +133,6 @@ async function handleLogin(e) {
 
 function applyCurrentAdminAuthor() {
     const authorField = document.getElementById('postAuthor');
-    loginBtn.disabled = false;
-    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
-
     const username = currentAdminUser?.username || authorField.value.trim();
     if (username) {
         authorField.value = username;
@@ -122,6 +158,7 @@ async function initAdmin() {
             applyCurrentAdminAuthor();
             if (currentAdminUser?.isSuperAdmin) {
                 document.getElementById('superAdminTabButton')?.classList.remove('is-hidden');
+                document.getElementById('pageContentTabButton')?.classList.remove('is-hidden');
             }
         }
     } catch (error) {
@@ -134,6 +171,7 @@ async function initAdmin() {
     if (currentAdminUser?.isSuperAdmin) {
         await loadAdmins();
         await loadAdminChangeRequests();
+        await loadPageContentRequests();
     }
 }
 
@@ -496,6 +534,143 @@ async function voteOnAdminChangeRequest(id) {
         await loadAdminChangeRequests();
     } catch (error) {
         alert(error.message || 'Unable to confirm change request.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function loadPageContentEditor() {
+    const pageKey = document.getElementById('pageContentPage')?.value;
+    const titleField = document.getElementById('pageContentTitle');
+    const bodyField = document.getElementById('pageContentBody');
+    const status = document.getElementById('pageContentStatus');
+    if (!pageKey || !titleField || !bodyField || !status) return;
+
+    titleField.value = '';
+    bodyField.value = '';
+    status.textContent = 'Loading current approved content...';
+    try {
+        const content = await pageContentRequest(`/api/page-content/${encodeURIComponent(pageKey)}`);
+        titleField.value = content.title;
+        bodyField.value = content.body;
+        status.textContent = 'Editing the currently approved version. New changes will remain pending until approved.';
+    } catch (error) {
+        if (error.status === 404) {
+            try {
+                const response = await fetch(`/${pageKey === 'home' ? 'index' : pageKey}.html`);
+                if (!response.ok) {
+                    throw new Error(`Unable to load the current page copy (${response.status}).`);
+                }
+                const documentCopy = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const title = documentCopy.querySelector('h1');
+                const contentTarget = pageKey === 'home'
+                    ? documentCopy.querySelector('.hero-purpose')
+                    : pageKey === 'about'
+                        ? documentCopy.querySelector('.why-carnegien__copy')
+                        : documentCopy.querySelector('main');
+                if (!title || !contentTarget) {
+                    throw new Error('The current page copy could not be read.');
+                }
+                titleField.value = title.textContent.replace(/\s+/g, ' ').trim();
+                bodyField.value = Array.from(contentTarget.querySelectorAll('h2, h3, p, li'))
+                    .map(element => element.textContent.replace(/\s+/g, ' ').trim())
+                    .filter(Boolean)
+                    .join('\n\n');
+                status.textContent = 'Loaded the current page copy. A proposed rewrite remains private until another super admin approves it.';
+            } catch (loadError) {
+                status.textContent = `Unable to load the current page copy: ${loadError.message}`;
+            }
+            return;
+        }
+        status.textContent = `Unable to load approved content: ${error.message}`;
+    }
+}
+
+async function submitPageContentRequest(event) {
+    event.preventDefault();
+    if (!currentAdminUser?.isSuperAdmin) return;
+
+    const pageKey = document.getElementById('pageContentPage').value;
+    const title = document.getElementById('pageContentTitle').value.trim();
+    const body = document.getElementById('pageContentBody').value.trim();
+    const button = document.getElementById('submitPageContentButton');
+    button.disabled = true;
+    showLoading(true);
+    try {
+        await pageContentRequest('/api/admin/page-content-requests', {
+            method: 'POST',
+            body: JSON.stringify({ pageKey, title, body })
+        });
+        showNotification(`Page content request submitted for ${pageContentLabels[pageKey]}.`);
+        await loadPageContentRequests();
+        await loadPageContentEditor();
+    } catch (error) {
+        alert(error.message || 'Unable to submit page content request.');
+    } finally {
+        button.disabled = false;
+        showLoading(false);
+    }
+}
+
+async function loadPageContentRequests() {
+    if (!currentAdminUser?.isSuperAdmin) return;
+    const container = document.getElementById('pageContentRequestsList');
+    if (!container) return;
+
+    try {
+        const requests = await pageContentRequest('/api/admin/page-content-requests');
+        if (!requests.length) {
+            container.innerHTML = '<div class="empty-state">No page content requests are waiting for review.</div>';
+            return;
+        }
+        container.innerHTML = requests.map(request => `
+            <div class="post-item admin-account-item">
+                <div class="post-info">
+                    <h4>${escapeHTML(pageContentLabels[request.pageKey] || request.pageKey)}: ${escapeHTML(request.title)}</h4>
+                    <div class="post-meta">
+                        <span><i class="fas fa-user"></i> Requested by ${escapeHTML(request.requesterUsername)}</span>
+                        <span><i class="fas fa-calendar"></i> ${formatDate(request.createdAt)}</span>
+                    </div>
+                    <details class="page-content-preview">
+                        <summary>Preview proposed page copy</summary>
+                        <pre>${escapeHTML(request.body)}</pre>
+                    </details>
+                </div>
+                ${request.requestedBy !== currentAdminUser.id
+                    ? `<div class="post-actions">
+                        <button type="button" class="btn btn-approve" data-page-content-decision="approve" data-page-content-request-id="${escapeAttribute(request.id)}"><i class="fas fa-check" aria-hidden="true"></i> Approve</button>
+                        <button type="button" class="btn btn-danger" data-page-content-decision="reject" data-page-content-request-id="${escapeAttribute(request.id)}"><i class="fas fa-xmark" aria-hidden="true"></i> Reject</button>
+                    </div>`
+                    : '<span class="admin-request-note">Waiting for another super admin</span>'}
+            </div>
+        `).join('');
+        container.querySelectorAll('[data-page-content-request-id]').forEach(button => {
+            button.addEventListener('click', () => resolvePageContentRequest(
+                button.dataset.pageContentRequestId,
+                button.dataset.pageContentDecision
+            ));
+        });
+    } catch (error) {
+        container.innerHTML = `<div class="empty-state">Unable to load page content requests: ${escapeHTML(error.message)}</div>`;
+    }
+}
+
+async function resolvePageContentRequest(id, decision) {
+    const verb = decision === 'approve' ? 'approve' : 'reject';
+    if (!window.confirm(`Are you sure you want to ${verb} this page content request?`)) return;
+    showLoading(true);
+    try {
+        const result = await pageContentRequest(
+            `/api/admin/page-content-requests/${encodeURIComponent(id)}/resolve`,
+            { method: 'POST', body: JSON.stringify({ decision }) }
+        );
+        showNotification(result.status === 'approved'
+            ? 'Page content approved and published.'
+            : 'Page content request rejected.');
+        await loadPageContentRequests();
+        await loadPageContentEditor();
+    } catch (error) {
+        alert(error.message || `Unable to ${verb} page content request.`);
     } finally {
         showLoading(false);
     }
@@ -983,6 +1158,9 @@ function switchTab(tabName) {
     } else if (tabName === 'super-admin') {
         loadAdmins();
         loadAdminChangeRequests();
+    } else if (tabName === 'page-content') {
+        loadPageContentEditor();
+        loadPageContentRequests();
     } else if (tabName === 'export') {
         updateDocumentStatus();
     }
@@ -1040,6 +1218,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('authSwitch')?.addEventListener('click', toggleAuthMode);
     document.getElementById('togglePassword')?.addEventListener('click', togglePassword);
     document.getElementById('teamProfilesForm')?.addEventListener('submit', saveTeamProfiles);
+    document.getElementById('pageContentForm')?.addEventListener('submit', submitPageContentRequest);
+    document.getElementById('pageContentPage')?.addEventListener('change', loadPageContentEditor);
 
     document.querySelectorAll('.tab-btn[data-tab]').forEach(button => {
         button.addEventListener('click', () => switchTab(button.dataset.tab));

@@ -28,7 +28,7 @@ function configureSharedHeader() {
 function loadScript(path) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = `${path}?v=20261014`;
+        script.src = `${path}?v=20261018-page-content`;
         script.onload = resolve;
         script.onerror = () => reject(new Error(`Unable to load page script: ${path}`));
         document.body.append(script);
@@ -53,6 +53,9 @@ try {
     const pageScripts = document.body.dataset.sharedScripts.trim().split(/\s+/).filter(Boolean);
     for (const path of pageScripts) {
         await loadScript(path);
+    }
+    if (document.body.dataset.pageContent) {
+        await loadScript('scripts/page-content.js');
     }
 } catch (error) {
     console.error('Shared page layout failed to initialize:', error);

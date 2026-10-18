@@ -142,6 +142,16 @@ The server listens on the `PORT` supplied by Render. Do not hard-code a producti
 
 Admin writes are authenticated by an HttpOnly, SameSite session cookie. In production the cookie also has the Secure attribute.
 
+### Public page copy workflow
+
+1. Sign in as a super admin and open the **Page Content** tab.
+2. Select a supported public page and edit its heading and plain-text copy. Separate paragraphs with a blank line.
+3. Submit the proposal. The current approved version remains live while it is pending.
+4. A different super admin reviews the proposal and approves or rejects it. The requester cannot approve or reject their own proposal.
+5. Approval publishes the proposed heading and copy immediately. Supported pages are Home, About, Core Values, Contact, Cookie Policy, Disclaimer, Earnings Disclaimer, Privacy Policy, Scam Awareness, Success Stories, and Terms of Use.
+
+There can only be one pending content request per page. The page copy is rendered as text, not arbitrary HTML.
+
 ### Post shape
 
 ```json
@@ -189,6 +199,7 @@ All API routes are under `/api`. JSON requests must use `Content-Type: applicati
 | `GET`  | `/api/posts/search?q=term`      | Searches title, excerpt, category, and tags                   |
 | `GET`  | `/api/categories`               | Returns categories                                            |
 | `GET`  | `/api/settings/:key`            | Returns a public setting or `404`                             |
+| `GET`  | `/api/page-content/:pageKey`     | Returns approved public page copy or `404`                    |
 | `GET`  | `/api/data/export`              | Returns posts and categories for backup                       |
 
 ### Authentication
@@ -211,6 +222,9 @@ Authentication requests are rate-limited to 10 requests per 15 minutes per clien
 | `POST`   | `/api/categories`               | Creates or updates a category                          |
 | `POST`   | `/api/categories/update-counts` | Recalculates category counts                           |
 | `POST`   | `/api/settings`                 | Creates or updates a setting                           |
+| `GET`    | `/api/admin/page-content-requests` | Lists pending page copy requests (super admin only)   |
+| `POST`   | `/api/admin/page-content-requests` | Submits a page copy request (super admin only)        |
+| `POST`   | `/api/admin/page-content-requests/:id/resolve` | Approves or rejects another super admin's request |
 | `POST`   | `/api/data/import`              | Replaces posts and categories from a validated payload |
 | `POST`   | `/api/data/clear`               | Deletes all posts and categories                       |
 

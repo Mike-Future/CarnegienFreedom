@@ -22,6 +22,19 @@ const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
     .map(origin => origin.trim())
     .filter(Boolean);
 const isProduction = process.env.NODE_ENV === 'production';
+const PAGE_CONTENT_KEYS = new Set([
+    'home',
+    'about',
+    'core-values',
+    'contact',
+    'cookie-policy',
+    'disclaimer',
+    'earnings-disclaimer',
+    'privacy-policy',
+    'scam-awareness',
+    'success-stories',
+    'terms-of-use'
+]);
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -178,6 +191,37 @@ async function initDatabase() {
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             PRIMARY KEY (request_id, voter_id)
         );
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS page_content (
+            page_key TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            updated_by UUID NOT NULL REFERENCES admin_users(id),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS page_content_change_requests (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            page_key TEXT NOT NULL,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            requested_by UUID NOT NULL REFERENCES admin_users(id),
+            status TEXT NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending', 'approved', 'rejected')),
+            resolved_by UUID REFERENCES admin_users(id),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            resolved_at TIMESTAMPTZ
+        );
+    `);
+
+    await pool.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_page_content_one_pending_request
+        ON page_content_change_requests(page_key)
+        WHERE status = 'pending';
     `);
 
     await pool.query(`
@@ -439,6 +483,137 @@ app.post('/api/auth/login', authRateLimit, async (req, res) => {
 
 app.get('/api/auth/session', requireAdmin, (req, res) => {
     res.json({ user: req.adminUser });
+});
+
+app.get('/api/page-content/:pageKey', async (req, res) => {
+    if (!PAGE_CONTENT_KEYS.has(req.params.pageKey)) {
+        return res.status(404).json({ error: 'Page content not found' });
+    }
+    try {
+        const result = await pool.query(
+            'SELECT page_key AS "pageKey", title, body FROM page_content WHERE page_key = $1',
+            [req.params.pageKey]
+        );
+        if (!result.rows[0]) {
+            return res.status(404).json({ error: 'Page content not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Unable to load page content:', error.message);
+        res.status(500).json({ error: 'Unable to load page content' });
+    }
+});
+
+app.get('/api/admin/page-content-requests', requireSuperAdmin, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT requests.id, requests.page_key AS "pageKey", requests.title, requests.body,
+                    requests.requested_by AS "requestedBy", requests.created_at AS "createdAt",
+                    requester.username AS "requesterUsername"
+             FROM page_content_change_requests requests
+             JOIN admin_users requester ON requester.id = requests.requested_by
+             WHERE requests.status = 'pending'
+             ORDER BY requests.created_at ASC`
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Unable to load page content requests:', error.message);
+        res.status(500).json({ error: 'Unable to load page content requests' });
+    }
+});
+
+app.post('/api/admin/page-content-requests', requireSuperAdmin, async (req, res) => {
+    const pageKey = req.body?.pageKey;
+    const title = typeof req.body?.title === 'string' ? req.body.title.trim() : '';
+    const body = typeof req.body?.body === 'string' ? req.body.body.trim() : '';
+    if (typeof pageKey !== 'string' || !PAGE_CONTENT_KEYS.has(pageKey)) {
+        return res.status(400).json({ error: 'Choose a supported website page' });
+    }
+    if (!title || title.length > 160) {
+        return res.status(400).json({ error: 'Page title must be between 1 and 160 characters' });
+    }
+    if (!body || body.length > 30000) {
+        return res.status(400).json({ error: 'Page copy must be between 1 and 30000 characters' });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO page_content_change_requests (page_key, title, body, requested_by)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id, page_key AS "pageKey", title, body, status, created_at AS "createdAt"`,
+            [pageKey, title, body, req.adminUser.id]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        if (error.code === '23505') {
+            return res.status(409).json({ error: 'A page content request is already pending for this page' });
+        }
+        console.error('Unable to submit page content request:', error.message);
+        res.status(500).json({ error: 'Unable to submit page content request' });
+    }
+});
+
+app.post('/api/admin/page-content-requests/:id/resolve', requireSuperAdmin, async (req, res) => {
+    const decision = String(req.body?.decision || '').trim().toLowerCase();
+    if (!['approve', 'reject'].includes(decision)) {
+        return res.status(400).json({ error: 'Decision must be approve or reject' });
+    }
+
+    let client;
+    let transactionStarted = false;
+    try {
+        client = await pool.connect();
+        await client.query('BEGIN');
+        transactionStarted = true;
+        const requestResult = await client.query(
+            `SELECT id, page_key, title, body, requested_by, status
+             FROM page_content_change_requests
+             WHERE id = $1
+             FOR UPDATE`,
+            [req.params.id]
+        );
+        const changeRequest = requestResult.rows[0];
+        if (!changeRequest || changeRequest.status !== 'pending') {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Pending page content request not found' });
+        }
+        if (changeRequest.requested_by === req.adminUser.id) {
+            await client.query('ROLLBACK');
+            return res.status(403).json({ error: 'Another super admin must review your page content request' });
+        }
+
+        const status = decision === 'approve' ? 'approved' : 'rejected';
+        await client.query(
+            `UPDATE page_content_change_requests
+             SET status = $1, resolved_by = $2, resolved_at = NOW()
+             WHERE id = $3`,
+            [status, req.adminUser.id, changeRequest.id]
+        );
+        if (decision === 'approve') {
+            await client.query(
+                `INSERT INTO page_content (page_key, title, body, updated_by)
+                 VALUES ($1, $2, $3, $4)
+                 ON CONFLICT (page_key) DO UPDATE
+                 SET title = EXCLUDED.title, body = EXCLUDED.body,
+                     updated_by = EXCLUDED.updated_by, updated_at = NOW()`,
+                [changeRequest.page_key, changeRequest.title, changeRequest.body, req.adminUser.id]
+            );
+        }
+        await client.query('COMMIT');
+        res.json({ id: changeRequest.id, status });
+    } catch (error) {
+        if (transactionStarted) {
+            try {
+                await client.query('ROLLBACK');
+            } catch (rollbackError) {
+                console.error('Unable to roll back page content request:', rollbackError.message);
+            }
+        }
+        console.error('Unable to resolve page content request:', error.message);
+        res.status(500).json({ error: 'Unable to resolve page content request' });
+    } finally {
+        client?.release();
+    }
 });
 
 app.get('/api/admin/pending', requireSuperAdmin, async (req, res) => {

@@ -424,6 +424,7 @@ body {
 
 .form-group input,
 .form-group select,
+.form-group select,
 .form-group textarea {
     width: 100%;
     padding: 0.75rem 1rem;
@@ -437,6 +438,7 @@ body {
 
 .form-group input:focus,
 .form-group select:focus,
+.form-group select:focus,
 .form-group textarea:focus {
     border-color: var(--growth-green);
 }
@@ -444,6 +446,27 @@ body {
 .form-group textarea {
     min-height: 200px;
     resize: vertical;
+}
+
+.page-content-preview {
+    margin-top: 0.75rem;
+}
+
+.page-content-preview summary {
+    color: var(--soft-sky-blue);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.page-content-preview pre {
+    max-height: 20rem;
+    margin-top: 0.75rem;
+    overflow: auto;
+    padding: 1rem;
+    border-radius: 8px;
+    background: var(--bg-light);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .form-group small {
