@@ -563,17 +563,15 @@ async function loadPageContentEditor() {
                 }
                 const documentCopy = new DOMParser().parseFromString(await response.text(), 'text/html');
                 const title = documentCopy.querySelector('h1');
-                const contentTarget = pageKey === 'home'
-                    ? documentCopy.querySelector('.hero-purpose')
-                    : pageKey === 'about'
-                        ? documentCopy.querySelector('.why-carnegien__copy')
-                        : documentCopy.querySelector('main');
+                const contentTarget = documentCopy.querySelector('[data-page-content-target]') || documentCopy.querySelector('main');
                 if (!title || !contentTarget) {
                     throw new Error('The current page copy could not be read.');
                 }
                 titleField.value = title.textContent.replace(/\s+/g, ' ').trim();
-                bodyField.value = Array.from(contentTarget.querySelectorAll('h2, h3, p, li'))
+                bodyField.value = Array.from(contentTarget.querySelectorAll('h1, h2, h3, p, li'))
+                    .filter(element => !element.closest('[data-preserve-page-content]'))
                     .map(element => element.textContent.replace(/\s+/g, ' ').trim())
+                    .filter(text => text !== titleField.value)
                     .filter(Boolean)
                     .join('\n\n');
                 status.textContent = 'Loaded the current page copy. A proposed rewrite remains private until another super admin approves it.';

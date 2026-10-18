@@ -145,10 +145,10 @@ Admin writes are authenticated by an HttpOnly, SameSite session cookie. In produ
 ### Public page copy workflow
 
 1. Sign in as a super admin and open the **Page Content** tab.
-2. Select a supported public page and edit its heading and plain-text copy. Separate paragraphs with a blank line.
+2. Select any public page except the blog listing, blog articles, or admin, then edit its heading and page copy. Separate paragraphs with a blank line.
 3. Submit the proposal. The current approved version remains live while it is pending.
 4. A different super admin reviews the proposal and approves or rejects it. The requester cannot approve or reject their own proposal.
-5. Approval publishes the proposed heading and copy immediately. Supported pages are Home, About, Core Values, Contact, Cookie Policy, Disclaimer, Earnings Disclaimer, Privacy Policy, Scam Awareness, Success Stories, and Terms of Use.
+5. Approval publishes the proposed heading and copy immediately. Editable pages are Home, About, Core Values, Contact, Cookie Policy, Disclaimer, Earnings Disclaimer, Privacy Policy, Scam Awareness, Success Stories, and Terms of Use. Shared navigation, footer, and interactive team profiles are preserved.
 
 There can only be one pending content request per page. The page copy is rendered as text, not arbitrary HTML.
 

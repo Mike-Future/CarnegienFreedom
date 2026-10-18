@@ -12,25 +12,28 @@ async function applyApprovedPageContent() {
 
     const pageContent = await response.json();
     const title = document.querySelector('h1');
-    const contentTarget = pageKey === 'home'
-        ? document.querySelector('.hero-purpose')
-        : pageKey === 'about'
-            ? document.querySelector('.why-carnegien__copy')
-            : document.querySelector('main');
+    const contentTarget = document.querySelector('[data-page-content-target]') || document.querySelector('main');
 
     if (!title || !contentTarget) {
         throw new Error(`The page content target is missing for "${pageKey}".`);
     }
 
     title.textContent = pageContent.title;
-    contentTarget.replaceChildren(...pageContent.body.split(/\n\s*\n/).map(paragraphText => {
+    const preservedContent = Array.from(contentTarget.querySelectorAll('[data-preserve-page-content]'));
+    const titleIsInContentTarget = contentTarget.contains(title);
+    const paragraphs = pageContent.body.split(/\n\s*\n/).map(paragraphText => {
         const paragraph = document.createElement('p');
         paragraphText.split('\n').forEach((line, index) => {
             if (index) paragraph.append(document.createElement('br'));
             appendLinks(paragraph, line);
         });
         return paragraph;
-    }));
+    });
+    contentTarget.replaceChildren(
+        ...(titleIsInContentTarget ? [title] : []),
+        ...paragraphs,
+        ...preservedContent.filter(element => element !== title)
+    );
     if (pageKey === 'privacy-policy') {
         document.querySelector('.privacy-sidebar')?.setAttribute('hidden', '');
     }
