@@ -28,7 +28,7 @@ function configureSharedHeader() {
 function loadScript(path) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = `${path}?v=20261018-page-content`;
+        script.src = `${path}?v=20261020-page-sections`;
         script.onload = resolve;
         script.onerror = () => reject(new Error(`Unable to load page script: ${path}`));
         document.body.append(script);
@@ -55,6 +55,7 @@ try {
         await loadScript(path);
     }
     if (document.body.dataset.pageContent) {
+        await loadScript('scripts/page-content-sections.js');
         await loadScript('scripts/page-content.js');
     }
 } catch (error) {

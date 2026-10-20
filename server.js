@@ -196,6 +196,7 @@ async function initDatabase() {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS page_content (
             page_key TEXT PRIMARY KEY,
+            section_key TEXT NOT NULL DEFAULT 'section-1',
             title TEXT NOT NULL,
             body TEXT NOT NULL,
             updated_by UUID REFERENCES admin_users(id) ON DELETE SET NULL,
@@ -207,6 +208,8 @@ async function initDatabase() {
         CREATE TABLE IF NOT EXISTS page_content_change_requests (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             page_key TEXT NOT NULL,
+            section_key TEXT NOT NULL DEFAULT 'section-1',
+            section_label TEXT NOT NULL DEFAULT 'Section',
             title TEXT NOT NULL,
             body TEXT NOT NULL,
             requested_by UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
@@ -218,9 +221,15 @@ async function initDatabase() {
         );
     `);
 
+    await pool.query(`ALTER TABLE page_content ADD COLUMN IF NOT EXISTS section_key TEXT NOT NULL DEFAULT 'section-1';`);
+    await pool.query(`ALTER TABLE page_content DROP CONSTRAINT IF EXISTS page_content_pkey;`);
+    await pool.query(`ALTER TABLE page_content ADD CONSTRAINT page_content_pkey PRIMARY KEY (page_key, section_key);`);
+    await pool.query(`ALTER TABLE page_content_change_requests ADD COLUMN IF NOT EXISTS section_key TEXT NOT NULL DEFAULT 'section-1';`);
+    await pool.query(`ALTER TABLE page_content_change_requests ADD COLUMN IF NOT EXISTS section_label TEXT NOT NULL DEFAULT 'Section';`);
+    await pool.query(`DROP INDEX IF EXISTS idx_page_content_one_pending_request;`);
     await pool.query(`
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_page_content_one_pending_request
-        ON page_content_change_requests(page_key)
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_page_content_one_pending_section_request
+        ON page_content_change_requests(page_key, section_key)
         WHERE status = 'pending';
     `);
 
@@ -492,13 +501,16 @@ app.get('/api/page-content/:pageKey', async (req, res) => {
     }
     try {
         const result = await pool.query(
-            'SELECT page_key AS "pageKey", title, body FROM page_content WHERE page_key = $1',
+            `SELECT section_key AS "sectionKey", title, body
+             FROM page_content
+             WHERE page_key = $1
+             ORDER BY section_key`,
             [req.params.pageKey]
         );
-        if (!result.rows[0]) {
+        if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Page content not found' });
         }
-        res.json(result.rows[0]);
+        res.json({ pageKey: req.params.pageKey, sections: result.rows });
     } catch (error) {
         console.error('Unable to load page content:', error.message);
         res.status(500).json({ error: 'Unable to load page content' });
@@ -508,7 +520,9 @@ app.get('/api/page-content/:pageKey', async (req, res) => {
 app.get('/api/admin/page-content-requests', requireSuperAdmin, async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT requests.id, requests.page_key AS "pageKey", requests.title, requests.body,
+            `SELECT requests.id, requests.page_key AS "pageKey",
+                    requests.section_key AS "sectionKey", requests.section_label AS "sectionLabel",
+                    requests.title, requests.body,
                     requests.requested_by AS "requestedBy", requests.created_at AS "createdAt",
                     requester.username AS "requesterUsername"
              FROM page_content_change_requests requests
@@ -525,29 +539,40 @@ app.get('/api/admin/page-content-requests', requireSuperAdmin, async (req, res) 
 
 app.post('/api/admin/page-content-requests', requireSuperAdmin, async (req, res) => {
     const pageKey = req.body?.pageKey;
+    const sectionKey = req.body?.sectionKey;
+    const sectionLabel = typeof req.body?.sectionLabel === 'string' ? req.body.sectionLabel.trim() : '';
     const title = typeof req.body?.title === 'string' ? req.body.title.trim() : '';
     const body = typeof req.body?.body === 'string' ? req.body.body.trim() : '';
     if (typeof pageKey !== 'string' || !PAGE_CONTENT_KEYS.has(pageKey)) {
         return res.status(400).json({ error: 'Choose a supported website page' });
     }
-    if (!title || title.length > 160) {
-        return res.status(400).json({ error: 'Page title must be between 1 and 160 characters' });
+    if (typeof sectionKey !== 'string' || !/^(intro|section-[1-9]\d{0,2})$/.test(sectionKey)) {
+        return res.status(400).json({ error: 'Choose a valid page section' });
     }
-    if (!body || body.length > 30000) {
-        return res.status(400).json({ error: 'Page copy must be between 1 and 30000 characters' });
+    if (!sectionLabel || sectionLabel.length > 160) {
+        return res.status(400).json({ error: 'Section label must be between 1 and 160 characters' });
+    }
+    if (!title || title.length > 160) {
+        return res.status(400).json({ error: 'Section heading must be between 1 and 160 characters' });
+    }
+    if (body.length > 30000) {
+        return res.status(400).json({ error: 'Section copy must be no longer than 30000 characters' });
     }
 
     try {
         const result = await pool.query(
-            `INSERT INTO page_content_change_requests (page_key, title, body, requested_by)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id, page_key AS "pageKey", title, body, status, created_at AS "createdAt"`,
-            [pageKey, title, body, req.adminUser.id]
+            `INSERT INTO page_content_change_requests
+                (page_key, section_key, section_label, title, body, requested_by)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING id, page_key AS "pageKey", section_key AS "sectionKey",
+                       section_label AS "sectionLabel", title, body, status,
+                       created_at AS "createdAt"`,
+            [pageKey, sectionKey, sectionLabel, title, body, req.adminUser.id]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
         if (error.code === '23505') {
-            return res.status(409).json({ error: 'A page content request is already pending for this page' });
+            return res.status(409).json({ error: 'A content request is already pending for this section' });
         }
         console.error('Unable to submit page content request:', error.message);
         res.status(500).json({ error: 'Unable to submit page content request' });
@@ -567,7 +592,7 @@ app.post('/api/admin/page-content-requests/:id/resolve', requireSuperAdmin, asyn
         await client.query('BEGIN');
         transactionStarted = true;
         const requestResult = await client.query(
-            `SELECT id, page_key, title, body, requested_by, status
+            `SELECT id, page_key, section_key, title, body, requested_by, status
              FROM page_content_change_requests
              WHERE id = $1
              FOR UPDATE`,
@@ -592,12 +617,13 @@ app.post('/api/admin/page-content-requests/:id/resolve', requireSuperAdmin, asyn
         );
         if (decision === 'approve') {
             await client.query(
-                `INSERT INTO page_content (page_key, title, body, updated_by)
-                 VALUES ($1, $2, $3, $4)
-                 ON CONFLICT (page_key) DO UPDATE
+                `INSERT INTO page_content (page_key, section_key, title, body, updated_by)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (page_key, section_key) DO UPDATE
                  SET title = EXCLUDED.title, body = EXCLUDED.body,
                      updated_by = EXCLUDED.updated_by, updated_at = NOW()`,
-                [changeRequest.page_key, changeRequest.title, changeRequest.body, req.adminUser.id]
+                [changeRequest.page_key, changeRequest.section_key, changeRequest.title,
+                    changeRequest.body, req.adminUser.id]
             );
         }
         await client.query('COMMIT');

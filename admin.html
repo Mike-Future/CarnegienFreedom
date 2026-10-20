@@ -178,43 +178,31 @@
             <div class="tab-content" id="page-contentTab">
                 <div class="instructions">
                     <h4><i class="fas fa-file-pen"></i> Propose Website Page Content</h4>
-                    <p>Page edits are private until a different super admin approves them. The approved title replaces
-                        the page heading, and the plain-text copy replaces the public page content. Use a blank line
-                        between paragraphs. Every public page except the blog and its articles is available here;
-                        navigation, footer, and interactive team profiles remain intact.</p>
+                    <p>Edit one section at a time. Each section proposal is reviewed independently, and only a different
+                        super admin can approve it. The blog, blog articles, navigation, footer, and interactive team
+                        profiles are not included.</p>
                 </div>
                 <form id="pageContentForm" class="form-section">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="pageContentPage">Website page</label>
-                            <select id="pageContentPage" required>
-                                <option value="home">Home</option>
-                                <option value="about">About</option>
-                                <option value="core-values">Core Values</option>
-                                <option value="contact">Contact</option>
-                                <option value="cookie-policy">Cookie Policy</option>
-                                <option value="disclaimer">Disclaimer</option>
-                                <option value="earnings-disclaimer">Earnings Disclaimer</option>
-                                <option value="privacy-policy">Privacy Policy</option>
-                                <option value="scam-awareness">Scam Awareness</option>
-                                <option value="success-stories">Success Stories</option>
-                                <option value="terms-of-use">Terms of Use</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="pageContentTitle">Page heading</label>
-                            <input type="text" id="pageContentTitle" maxlength="160" required>
-                        </div>
-                        <div class="form-group full-width">
-                            <label for="pageContentBody">Page copy</label>
-                            <textarea id="pageContentBody" rows="12" maxlength="30000" required
-                                placeholder="Enter the proposed page copy. Separate paragraphs with a blank line."></textarea>
-                            <small id="pageContentStatus">Loading current approved content...</small>
-                        </div>
+                    <div class="form-group">
+                        <label for="pageContentPage">Website page</label>
+                        <select id="pageContentPage" required>
+                            <option value="home">Home</option>
+                            <option value="about">About</option>
+                            <option value="core-values">Core Values</option>
+                            <option value="contact">Contact</option>
+                            <option value="cookie-policy">Cookie Policy</option>
+                            <option value="disclaimer">Disclaimer</option>
+                            <option value="earnings-disclaimer">Earnings Disclaimer</option>
+                            <option value="privacy-policy">Privacy Policy</option>
+                            <option value="scam-awareness">Scam Awareness</option>
+                            <option value="success-stories">Success Stories</option>
+                            <option value="terms-of-use">Terms of Use</option>
+                        </select>
                     </div>
-                    <button type="submit" class="btn btn-publish" id="submitPageContentButton">
-                        <i class="fas fa-paper-plane"></i> Submit for Approval
-                    </button>
+                    <p id="pageContentStatus" class="export-status" role="status" aria-live="polite">
+                        Loading page sections...
+                    </p>
+                    <div id="pageContentSections"></div>
                 </form>
                 <div class="instructions admin-change-requests-heading">
                     <h4><i class="fas fa-clipboard-check"></i> Page Content Requests</h4>
@@ -387,7 +375,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
     <script src="scripts/db.js?v=20260906"></script>
-    <script src="scripts/admin.js?v=20261018-page-content"></script>
+    <script src="scripts/page-content-sections.js?v=20261020"></script>
+    <script src="scripts/admin.js?v=20261020-page-content"></script>
 </body>
 
 </html>

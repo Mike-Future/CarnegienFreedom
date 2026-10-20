@@ -389,6 +389,10 @@ body {
     margin-bottom: 2rem;
 }
 
+.page-content-editor {
+    margin-bottom: 1rem;
+}
+
 .form-section h3 {
     color: var(--deep-trust-blue);
     margin-bottom: 1.5rem;

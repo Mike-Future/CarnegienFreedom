@@ -541,71 +541,111 @@ async function voteOnAdminChangeRequest(id) {
 
 async function loadPageContentEditor() {
     const pageKey = document.getElementById('pageContentPage')?.value;
-    const titleField = document.getElementById('pageContentTitle');
-    const bodyField = document.getElementById('pageContentBody');
+    const container = document.getElementById('pageContentSections');
     const status = document.getElementById('pageContentStatus');
-    if (!pageKey || !titleField || !bodyField || !status) return;
+    if (!pageKey || !container || !status) return;
 
-    titleField.value = '';
-    bodyField.value = '';
     status.textContent = 'Loading current approved content...';
+    container.replaceChildren();
     try {
-        const content = await pageContentRequest(`/api/page-content/${encodeURIComponent(pageKey)}`);
-        titleField.value = content.title;
-        bodyField.value = content.body;
-        status.textContent = 'Editing the currently approved version. New changes will remain pending until approved.';
-    } catch (error) {
-        if (error.status === 404) {
-            try {
-                const response = await fetch(`/${pageKey === 'home' ? 'index' : pageKey}.html`);
-                if (!response.ok) {
-                    throw new Error(`Unable to load the current page copy (${response.status}).`);
-                }
-                const documentCopy = new DOMParser().parseFromString(await response.text(), 'text/html');
-                const title = documentCopy.querySelector('h1');
-                const contentTarget = documentCopy.querySelector('[data-page-content-target]') || documentCopy.querySelector('main');
-                if (!title || !contentTarget) {
-                    throw new Error('The current page copy could not be read.');
-                }
-                titleField.value = title.textContent.replace(/\s+/g, ' ').trim();
-                bodyField.value = Array.from(contentTarget.querySelectorAll('h1, h2, h3, p, li'))
-                    .filter(element => !element.closest('[data-preserve-page-content]'))
-                    .map(element => element.textContent.replace(/\s+/g, ' ').trim())
-                    .filter(text => text !== titleField.value)
-                    .filter(Boolean)
-                    .join('\n\n');
-                status.textContent = 'Loaded the current page copy. A proposed rewrite remains private until another super admin approves it.';
-            } catch (loadError) {
-                status.textContent = `Unable to load the current page copy: ${loadError.message}`;
-            }
-            return;
+        const pageResponse = await fetch(`/${pageKey === 'home' ? 'index' : pageKey}.html`);
+        if (!pageResponse.ok) {
+            throw new Error(`Unable to load the selected page (${pageResponse.status}).`);
         }
-        status.textContent = `Unable to load approved content: ${error.message}`;
+        const documentCopy = new DOMParser().parseFromString(await pageResponse.text(), 'text/html');
+        const sections = window.LegitWaysPageContentSections.getSections(documentCopy);
+        let approvedSections = [];
+        try {
+            const content = await pageContentRequest(`/api/page-content/${encodeURIComponent(pageKey)}`);
+            approvedSections = content.sections;
+        } catch (error) {
+            if (error.status !== 404) throw error;
+        }
+        const requests = await pageContentRequest('/api/admin/page-content-requests');
+        renderPageContentEditors(pageKey, sections, approvedSections, requests);
+        status.textContent = sections.length
+            ? `${sections.length} editable sections. Submit each section separately; a different super admin must approve each change.`
+            : 'No editable sections were found on this page.';
+    } catch (error) {
+        status.textContent = `Unable to load page sections: ${error.message}`;
     }
 }
 
-async function submitPageContentRequest(event) {
-    event.preventDefault();
+function renderPageContentEditors(pageKey, sections, approvedSections, requests) {
+    const container = document.getElementById('pageContentSections');
+    const approvedByKey = new Map(approvedSections.map(section => [section.sectionKey, section]));
+    const pendingByKey = new Map(requests
+        .filter(request => request.pageKey === pageKey)
+        .map(request => [request.sectionKey, request]));
+
+    container.innerHTML = sections.map(section => {
+        const approved = approvedByKey.get(section.key);
+        const pending = pendingByKey.get(section.key);
+        return `
+            <section class="form-section page-content-editor" data-page-section-editor="${escapeAttribute(section.key)}">
+                <div class="instructions">
+                    <h4>${escapeHTML(section.label)}</h4>
+                    <p>${pending
+                        ? `A change requested by ${escapeHTML(pending.requesterUsername)} is waiting for another super admin.`
+                        : 'This section is live as-is until a proposed edit is approved.'}</p>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="page-content-title-${escapeAttribute(section.key)}">Section heading</label>
+                        <input id="page-content-title-${escapeAttribute(section.key)}" data-page-content-title
+                            type="text" maxlength="160" required
+                            value="${escapeAttribute(approved?.title || section.title)}">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="page-content-body-${escapeAttribute(section.key)}">Section copy</label>
+                        <textarea id="page-content-body-${escapeAttribute(section.key)}" data-page-content-body
+                            rows="6" maxlength="30000">${escapeHTML(approved?.body ?? section.body)}</textarea>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-publish" data-submit-page-section
+                    data-section-key="${escapeAttribute(section.key)}" data-section-label="${escapeAttribute(section.label)}"
+                    ${pending ? 'disabled' : ''}>
+                    <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                    ${pending ? 'Awaiting Approval' : 'Submit This Section for Approval'}
+                </button>
+            </section>
+        `;
+    }).join('');
+
+    container.querySelectorAll('[data-submit-page-section]').forEach(button => {
+        button.addEventListener('click', () => submitPageContentRequest(
+            pageKey,
+            button.dataset.sectionKey,
+            button.dataset.sectionLabel,
+            button.closest('[data-page-section-editor]')
+        ));
+    });
+}
+
+async function submitPageContentRequest(pageKey, sectionKey, sectionLabel, editor) {
     if (!currentAdminUser?.isSuperAdmin) return;
 
-    const pageKey = document.getElementById('pageContentPage').value;
-    const title = document.getElementById('pageContentTitle').value.trim();
-    const body = document.getElementById('pageContentBody').value.trim();
-    const button = document.getElementById('submitPageContentButton');
+    const titleField = editor.querySelector('[data-page-content-title]');
+    const bodyField = editor.querySelector('[data-page-content-body]');
+    const button = editor.querySelector('[data-submit-page-section]');
+    const title = titleField.value.trim();
+    const body = bodyField.value.trim();
+    if (!titleField.reportValidity()) return;
+
     button.disabled = true;
     showLoading(true);
     try {
         await pageContentRequest('/api/admin/page-content-requests', {
             method: 'POST',
-            body: JSON.stringify({ pageKey, title, body })
+            body: JSON.stringify({ pageKey, sectionKey, sectionLabel, title, body })
         });
-        showNotification(`Page content request submitted for ${pageContentLabels[pageKey]}.`);
+        showNotification(`Change submitted for ${pageContentLabels[pageKey]} — ${sectionLabel}.`);
         await loadPageContentRequests();
         await loadPageContentEditor();
     } catch (error) {
-        alert(error.message || 'Unable to submit page content request.');
+        alert(error.message || 'Unable to submit section change.');
     } finally {
-        button.disabled = false;
+        if (button.isConnected) button.disabled = false;
         showLoading(false);
     }
 }
@@ -624,13 +664,14 @@ async function loadPageContentRequests() {
         container.innerHTML = requests.map(request => `
             <div class="post-item admin-account-item">
                 <div class="post-info">
-                    <h4>${escapeHTML(pageContentLabels[request.pageKey] || request.pageKey)}: ${escapeHTML(request.title)}</h4>
+                    <h4>${escapeHTML(pageContentLabels[request.pageKey] || request.pageKey)} — ${escapeHTML(request.sectionLabel)}</h4>
+                    <p><strong>Proposed heading:</strong> ${escapeHTML(request.title)}</p>
                     <div class="post-meta">
                         <span><i class="fas fa-user"></i> Requested by ${escapeHTML(request.requesterUsername)}</span>
                         <span><i class="fas fa-calendar"></i> ${formatDate(request.createdAt)}</span>
                     </div>
                     <details class="page-content-preview">
-                        <summary>Preview proposed page copy</summary>
+                        <summary>Preview proposed section copy</summary>
                         <pre>${escapeHTML(request.body)}</pre>
                     </details>
                 </div>
@@ -1216,8 +1257,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('authSwitch')?.addEventListener('click', toggleAuthMode);
     document.getElementById('togglePassword')?.addEventListener('click', togglePassword);
     document.getElementById('teamProfilesForm')?.addEventListener('submit', saveTeamProfiles);
-    document.getElementById('pageContentForm')?.addEventListener('submit', submitPageContentRequest);
     document.getElementById('pageContentPage')?.addEventListener('change', loadPageContentEditor);
+    document.getElementById('pageContentForm')?.addEventListener('submit', event => event.preventDefault());
 
     document.querySelectorAll('.tab-btn[data-tab]').forEach(button => {
         button.addEventListener('click', () => switchTab(button.dataset.tab));
