@@ -133,6 +133,8 @@ The server schedules a full snapshot of persistent application tables every day 
 
 The service role/access key should be restricted to listing, writing, reading, and deleting objects under the configured prefix. Uploads request S3-managed AES-256 encryption. Archives include database content such as post content, settings, page content, admin accounts, and approval requests; admin password hashes are included, but temporary admin sessions are not. Treat the archives as sensitive and restrict bucket access. Static application assets are part of the deployed source and are not included. Scheduled backups are disabled when `BACKUP_S3_BUCKET` is unset; the server logs this. Super admins can check status, create an on-demand backup, and download an archive from the Backups tab in `/admin.html`.
 
+The application does not currently provide an automated restore operation; retain a tested recovery procedure for the downloaded JSON archives.
+
 ## 6. Blog Content Management
 
 ### Admin workflow
@@ -233,6 +235,9 @@ Authentication requests are rate-limited to 10 requests per 15 minutes per clien
 | `POST`   | `/api/admin/page-content-requests/:id/resolve` | Approves or rejects another super admin's request |
 | `POST`   | `/api/data/import`              | Replaces posts and categories from a validated payload |
 | `POST`   | `/api/data/clear`               | Deletes all posts and categories                       |
+| `GET`    | `/api/backups`                  | Lists S3 backups and scheduler status (super admin only) |
+| `POST`   | `/api/backups/run`              | Creates an on-demand S3 backup (super admin only) |
+| `GET`    | `/api/backups/:id/download`     | Downloads a compressed backup (super admin only) |
 
 The educational guide is downloaded directly from the site and does not require an email address.
 

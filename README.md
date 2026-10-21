@@ -121,6 +121,8 @@ Public endpoints include:
 
 Protected operations include authentication, post writes, category writes, settings writes, imports, deletes, and database clearing. See [WEBSITE_DOCUMENTATION.md](WEBSITE_DOCUMENTATION.md) for the complete request reference.
 
+Super-admin-only backup operations include `GET /api/backups` (status and list), `POST /api/backups/run` (create an on-demand snapshot), and `GET /api/backups/:id/download` (download a compressed archive).
+
 ## Deployment
 
 The included [render.yaml](render.yaml) defines a Node web service. Configure the production database and SMTP variables in Render's secret environment settings, then deploy with:

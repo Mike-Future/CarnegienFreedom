@@ -79,10 +79,12 @@ async function loadBackups() {
     try {
         const backupData = await backupRequest('/api/backups');
         if (!backupData.configured) {
-            status.textContent = 'Backups are not configured. Set BACKUP_S3_BUCKET and S3 credentials in the server environment.';
+            document.getElementById('runBackupButton').disabled = true;
+            status.textContent = 'Backups are not configured. Set BACKUP_S3_BUCKET and an S3 credential source (access keys or an instance role) in the server environment.';
             list.innerHTML = '<div class="empty-state">No backup storage is configured.</div>';
             return;
         }
+        document.getElementById('runBackupButton').disabled = false;
 
         const schedule = backupData.schedule === '0 2 * * *'
             ? 'daily at 02:00 UTC'

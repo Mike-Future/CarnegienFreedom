@@ -1112,6 +1112,9 @@ app.get('/api/backups/:id/download', requireSuperAdmin, async (req, res) => {
         if (error.message === 'Invalid backup identifier.') {
             return res.status(400).json({ error: error.message });
         }
+        if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
+            return res.status(404).json({ error: 'Backup not found.' });
+        }
         console.error('Unable to download database backup:', error.message);
         res.status(502).json({ error: 'Unable to download database backup. Check the server logs.' });
     }
