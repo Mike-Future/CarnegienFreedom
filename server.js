@@ -1105,10 +1105,6 @@ app.get('/api/backups/:id/download', requireSuperAdmin, async (req, res) => {
         }
         await require('stream/promises').pipeline(backup.Body, res);
     } catch (error) {
-        if (res.headersSent) {
-            res.destroy(error);
-            return;
-        }
         if (error.message === 'Invalid backup identifier.') {
             return res.status(400).json({ error: error.message });
         }
@@ -1116,6 +1112,10 @@ app.get('/api/backups/:id/download', requireSuperAdmin, async (req, res) => {
             return res.status(404).json({ error: 'Backup not found.' });
         }
         console.error('Unable to download database backup:', error.message);
+        if (res.headersSent) {
+            res.destroy(error);
+            return;
+        }
         res.status(502).json({ error: 'Unable to download database backup. Check the server logs.' });
     }
 });
