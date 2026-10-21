@@ -11,6 +11,7 @@ This repository contains the CarnegienFreedom website and its dynamic blog manag
 - Responsive public website and educational resource pages
 - PostgreSQL-backed blog with categories, search, featured posts, tags, and related articles
 - Protected admin panel for creating, editing, previewing, importing, exporting, and deleting posts
+- Daily compressed PostgreSQL data backups to private S3-compatible object storage, with admin status, on-demand snapshots, downloads, and configurable retention
 - Super admin approval workflow for new admin accounts
 - Super admins can propose changes to individual sections on every public page except the blog and its articles; each section change needs approval from a different super admin
 - Direct download of the educational guide without email collection
@@ -60,7 +61,13 @@ ALLOWED_ORIGINS=http://localhost:3000
 ADMIN_BOOTSTRAP_USERNAME=admin
 ADMIN_BOOTSTRAP_EMAIL=admin@example.com
 ADMIN_BOOTSTRAP_PASSWORD=replace-with-a-long-password
+BACKUP_S3_BUCKET=your-private-backup-bucket
+BACKUP_S3_REGION=us-east-1
+BACKUP_S3_ACCESS_KEY_ID=your-backup-access-key
+BACKUP_S3_SECRET_ACCESS_KEY=your-backup-secret-key
 ```
+
+Configure the S3 bucket and credentials as managed secrets in production. For S3-compatible storage, set `BACKUP_S3_ENDPOINT`; for providers that require path-style addressing, also set `BACKUP_S3_FORCE_PATH_STYLE=true`. `BACKUP_S3_PREFIX` defaults to `legitways/backups`. `BACKUP_SCHEDULE_CRON` defaults to `0 2 * * *` (02:00 UTC daily), and `BACKUP_RETENTION_COUNT` defaults to `30`. Backups are compressed and sent with S3 server-side encryption. The backup access key needs list, put, get, and delete access limited to the configured bucket/prefix. Without `BACKUP_S3_BUCKET`, scheduled backups remain disabled and the server logs this explicitly.
 
 For production, use managed secrets, `NODE_ENV=production`, `DB_SSL=true`, and set `ALLOWED_ORIGINS` to the exact HTTPS origins that should call the API.
 

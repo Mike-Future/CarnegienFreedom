@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const next = require('next');
+const backupService = require('./scripts/backup-service');
 require('dotenv').config();
 
 const app = express();
@@ -1065,6 +1066,57 @@ app.post('/api/data/clear', requireAdmin, async (req, res) => {
     res.status(204).end();
 });
 
+app.get('/api/backups', requireSuperAdmin, async (req, res) => {
+    try {
+        res.set('Cache-Control', 'no-store');
+        res.json(await backupService.getStatus());
+    } catch (error) {
+        console.error('Unable to retrieve database backups:', error.message);
+        res.status(502).json({ error: 'Unable to retrieve database backups. Check the server logs.' });
+    }
+});
+
+app.post('/api/backups/run', requireSuperAdmin, async (req, res) => {
+    if (!backupService.isConfigured()) {
+        return res.status(503).json({ error: 'S3 backup storage is not configured.' });
+    }
+    try {
+        const result = await backupService.runBackup();
+        if (result.skipped) {
+            return res.status(409).json({ error: 'A backup is already running on another server instance.' });
+        }
+        res.json(result);
+    } catch (error) {
+        console.error('Manual database backup failed:', error.message);
+        res.status(502).json({ error: 'Database backup failed. Check the server logs.' });
+    }
+});
+
+app.get('/api/backups/:id/download', requireSuperAdmin, async (req, res) => {
+    try {
+        const backup = await backupService.getBackup(req.params.id);
+        res.set({
+            'Cache-Control': 'private, no-store',
+            'Content-Disposition': `attachment; filename="legitways-backup-${req.params.id}.json.gz"`,
+            'Content-Type': 'application/gzip'
+        });
+        if (backup.ContentLength !== undefined) {
+            res.set('Content-Length', String(backup.ContentLength));
+        }
+        await require('stream/promises').pipeline(backup.Body, res);
+    } catch (error) {
+        if (res.headersSent) {
+            res.destroy(error);
+            return;
+        }
+        if (error.message === 'Invalid backup identifier.') {
+            return res.status(400).json({ error: error.message });
+        }
+        console.error('Unable to download database backup:', error.message);
+        res.status(502).json({ error: 'Unable to download database backup. Check the server logs.' });
+    }
+});
+
 app.use((req, res, next) => {
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'API route not found' });
@@ -1073,7 +1125,14 @@ app.use((req, res, next) => {
 });
 
 nextApp.prepare()
-    .then(() => initDatabase())
+    .then(async () => {
+        await initDatabase();
+        try {
+            backupService.start(pool);
+        } catch (error) {
+            console.error('Unable to initialize scheduled database backups:', error.message);
+        }
+    })
     .catch((error) => {
         console.error('Database unavailable; serving local blog data:', error.message);
     })

@@ -127,6 +127,12 @@ The project is configured for a Node web service on Render:
 
 The server listens on the `PORT` supplied by Render. Do not hard-code a production port.
 
+### Database backups
+
+The server schedules a full snapshot of persistent application tables every day at 02:00 UTC and uploads it as a gzip-compressed JSON archive to the configured S3-compatible bucket. Configure `BACKUP_S3_BUCKET` and `BACKUP_S3_REGION`, plus `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY` (or the AWS SDK's default credential provider). Set `BACKUP_S3_ENDPOINT` for non-AWS S3-compatible services; `BACKUP_S3_FORCE_PATH_STYLE=true` may be needed by some providers. `BACKUP_S3_PREFIX` defaults to `legitways/backups`. `BACKUP_SCHEDULE_CRON` changes the UTC cron schedule and `BACKUP_RETENTION_COUNT` controls retained snapshots (defaults: daily at 02:00 UTC and 30 snapshots).
+
+The service role/access key should be restricted to listing, writing, reading, and deleting objects under the configured prefix. Uploads request S3-managed AES-256 encryption. Archives include database content such as post content, settings, page content, admin accounts, and approval requests; admin password hashes are included, but temporary admin sessions are not. Treat the archives as sensitive and restrict bucket access. Static application assets are part of the deployed source and are not included. Scheduled backups are disabled when `BACKUP_S3_BUCKET` is unset; the server logs this. Super admins can check status, create an on-demand backup, and download an archive from the Backups tab in `/admin.html`.
+
 ## 6. Blog Content Management
 
 ### Admin workflow

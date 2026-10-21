@@ -131,6 +131,9 @@
                 <button class="tab-btn is-hidden" id="pageContentTabButton" data-tab="page-content">
                     <i class="fas fa-file-pen"></i> Page Content
                 </button>
+                <button class="tab-btn is-hidden" id="backupsTabButton" data-tab="backups">
+                    <i class="fas fa-database"></i> Backups
+                </button>
                 <button class="tab-btn" data-tab="export">
                     <i class="fas fa-file-word"></i> Export Document
                 </button>
@@ -210,6 +213,22 @@
                 </div>
                 <div class="posts-list" id="pageContentRequestsList">
                     <div class="empty-state">Loading page content requests...</div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="backupsTab">
+                <div class="instructions">
+                    <h4><i class="fas fa-database"></i> Database Backups</h4>
+                    <p>Daily compressed snapshots are uploaded to your private S3-compatible bucket (02:00 UTC by default). The latest 30 backups are retained by default. Backups include persistent application data and admin password hashes, but exclude temporary login sessions.</p>
+                </div>
+                <div class="export-actions">
+                    <button class="btn btn-export" id="runBackupButton" data-admin-action="run-backup">
+                        <i class="fas fa-cloud-arrow-up"></i> Back Up Now
+                    </button>
+                </div>
+                <p class="export-status" id="backupStatus" role="status" aria-live="polite">Loading backup status...</p>
+                <div class="posts-list" id="backupList">
+                    <div class="empty-state">Loading backups...</div>
                 </div>
             </div>
 

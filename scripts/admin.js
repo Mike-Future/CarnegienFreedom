@@ -49,6 +49,85 @@ async function pageContentRequest(path, options = {}) {
     return result;
 }
 
+async function backupRequest(path, options = {}) {
+    const response = await fetch(path, {
+        credentials: 'same-origin',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+    const text = response.status === 204 ? '' : await response.text();
+    let result = null;
+    if (text) {
+        try {
+            result = JSON.parse(text);
+        } catch (error) {
+            throw new Error(`Backup service returned an invalid response (${response.status}).`);
+        }
+    }
+    if (!response.ok) {
+        throw new Error(result?.error || 'Backup request failed');
+    }
+    return result;
+}
+
+async function loadBackups() {
+    const status = document.getElementById('backupStatus');
+    const list = document.getElementById('backupList');
+    try {
+        const backupData = await backupRequest('/api/backups');
+        if (!backupData.configured) {
+            status.textContent = 'Backups are not configured. Set BACKUP_S3_BUCKET and S3 credentials in the server environment.';
+            list.innerHTML = '<div class="empty-state">No backup storage is configured.</div>';
+            return;
+        }
+
+        const schedule = backupData.schedule === '0 2 * * *'
+            ? 'daily at 02:00 UTC'
+            : `on UTC cron schedule ${backupData.schedule}`;
+        status.textContent = backupData.lastError
+            ? `Last backup attempt failed: ${backupData.lastError}. Scheduled ${schedule}; retaining ${backupData.retentionCount} backups.`
+            : `Scheduled ${schedule}; retaining the latest ${backupData.retentionCount} backups${backupData.running ? ' (backup currently running)' : ''}.`;
+
+        list.innerHTML = backupData.backups.length
+            ? backupData.backups.map(backup => `
+                <div class="post-item">
+                    <div class="post-info">
+                        <h3>${escapeHTML(new Date(backup.createdAt || backup.id).toLocaleString())}</h3>
+                        <p>${escapeHTML((backup.size / 1024).toFixed(1))} KB</p>
+                    </div>
+                    <div class="post-actions">
+                        <a class="btn btn-secondary" href="/api/backups/${encodeURIComponent(backup.id)}/download">Download archive</a>
+                    </div>
+                </div>
+            `).join('')
+            : '<div class="empty-state">No backups have been created yet.</div>';
+    } catch (error) {
+        status.textContent = `Unable to load backup status: ${error.message}`;
+        list.innerHTML = '<div class="empty-state">Backup information could not be loaded.</div>';
+    }
+}
+
+async function runBackupNow() {
+    const button = document.getElementById('runBackupButton');
+    if (!window.confirm('Create and upload a new database backup now?')) {
+        return;
+    }
+    button.disabled = true;
+    document.getElementById('backupStatus').textContent = 'Creating and uploading database backup...';
+    try {
+        const result = await backupRequest('/api/backups/run', { method: 'POST' });
+        document.getElementById('backupStatus').textContent = `Backup created at ${new Date(result.createdAt).toLocaleString()}.`;
+        await loadBackups();
+    } catch (error) {
+        document.getElementById('backupStatus').textContent = `Backup failed: ${error.message}`;
+    } finally {
+        button.disabled = false;
+    }
+}
+
 async function authRequest(path, body) {
     const response = await fetch(path, {
         method: 'POST',
@@ -159,6 +238,7 @@ async function initAdmin() {
             if (currentAdminUser?.isSuperAdmin) {
                 document.getElementById('superAdminTabButton')?.classList.remove('is-hidden');
                 document.getElementById('pageContentTabButton')?.classList.remove('is-hidden');
+                document.getElementById('backupsTabButton')?.classList.remove('is-hidden');
             }
         }
     } catch (error) {
@@ -1202,6 +1282,8 @@ function switchTab(tabName) {
         loadPageContentRequests();
     } else if (tabName === 'export') {
         updateDocumentStatus();
+    } else if (tabName === 'backups') {
+        loadBackups();
     }
 }
 
@@ -1269,6 +1351,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const action = button.dataset.adminAction;
             if (action === 'download-document') downloadDocument();
             if (action === 'open-export') switchTab('export');
+            if (action === 'run-backup') runBackupNow();
             if (action === 'open-post-form') openPostForm();
             if (action === 'cancel-post') closePostForm();
             if (action === 'logout') logout();
