@@ -4,6 +4,7 @@
 let db = null;
 let allPosts = [];
 let filteredPosts = [];
+let activeTag = '';
 
 // Initialize whether this script loads before or after DOMContentLoaded.
 async function initializeBlog() {
@@ -12,6 +13,13 @@ async function initializeBlog() {
         const dbAPI = await LegitWaysDB.initDB();
         db = dbAPI;
 
+        const urlParams = new URLSearchParams(window.location.search);
+        activeTag = urlParams.get('tag')?.trim() || '';
+        const searchInput = document.getElementById('searchInput');
+        if (activeTag && searchInput) {
+            searchInput.value = activeTag;
+        }
+
         // Load and display posts
         await loadBlogPosts();
         setupEventListeners();
@@ -19,7 +27,8 @@ async function initializeBlog() {
         console.log('Dynamic blog system initialized');
     } catch (error) {
         console.error('Failed to initialize blog:', error);
-        document.getElementById('blogGrid').innerHTML = `
+        const grid = document.getElementById('blogGrid');
+        if (grid) grid.innerHTML = `
             <div class="no-results" style="grid-column: 1 / -1;">
                 <i class="fas fa-exclamation-circle"></i>
                 <h3>Unable to load articles</h3>
@@ -51,8 +60,7 @@ async function loadBlogPosts() {
         // Sort by date (newest first)
         allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        filteredPosts = allPosts;
-        renderPosts();
+        applyFilters();
     } catch (error) {
         console.error('Error loading posts:', error);
         grid.innerHTML = `
@@ -85,8 +93,9 @@ function renderPosts() {
     const searchQuery = document.getElementById('searchInput')?.value.trim();
     const showFeatured = activeCategory === 'all' && !searchQuery;
 
-    const postsHTML = filteredPosts.map((post, index) => {
-        const isFeatured = showFeatured && post.featured && index === 0;
+    const featuredPost = showFeatured ? filteredPosts.find(post => post.featured) : null;
+    const postsHTML = filteredPosts.map(post => {
+        const isFeatured = Boolean(featuredPost && post.id === featuredPost.id);
 
         return `
             <article class="blog-card ${isFeatured ? 'featured-post' : ''}" onclick="openArticle('${post.slug}')">
@@ -114,67 +123,64 @@ function setupEventListeners() {
     // Category filters
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', () => {
             // Update active state
             filterButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
-            // Filter posts
-            const category = btn.dataset.category;
-            await filterPosts(category);
+            applyFilters();
         });
     });
 
     // Search input with debounce
     const searchInput = document.getElementById('searchInput');
     let searchTimeout;
-    searchInput.addEventListener('input', (e) => {
+    searchInput.addEventListener('input', () => {
+        activeTag = '';
+        const url = new URL(window.location.href);
+        url.searchParams.delete('tag');
+        window.history.replaceState({}, '', url);
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            searchPosts(e.target.value);
+            searchPosts();
         }, 300);
     });
 }
 
-// Filter posts by category
-async function filterPosts(category) {
-    showLoading(true);
+// Apply category, tag, and text filters together.
+function applyFilters() {
+    const activeCategory = document.querySelector('.filter-btn.active')?.dataset.category || 'all';
+    const searchTerm = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+    const tag = activeTag.toLowerCase();
 
-    if (category === 'all') {
-        filteredPosts = allPosts;
-    } else {
-        filteredPosts = await db.getPostsByCategory(category);
-    }
-
-    // Re-sort by date
-    filteredPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    filteredPosts = allPosts.filter(post => {
+        const tags = Array.isArray(post.tags) ? post.tags : [];
+        const matchesCategory = activeCategory === 'all' || post.category === activeCategory;
+        const matchesTag = !tag || tags.some(value => String(value).toLowerCase() === tag);
+        const searchableValues = [
+            post.title,
+            post.excerpt,
+            post.categoryLabel,
+            ...tags
+        ];
+        const matchesSearch = !searchTerm || searchableValues.some(value =>
+            String(value || '').toLowerCase().includes(searchTerm)
+        );
+        return matchesCategory && matchesTag && matchesSearch;
+    });
 
     renderPosts();
-    showLoading(false);
 }
 
 // Search posts
-async function searchPosts(query) {
+function searchPosts() {
     showLoading(true);
-
-    const searchTerm = query.toLowerCase().trim();
-
-    if (searchTerm === '') {
-        const activeCategory = document.querySelector('.filter-btn.active').dataset.category;
-        await filterPosts(activeCategory);
-        return;
-    }
-
-    filteredPosts = await db.searchPosts(searchTerm);
-    filteredPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    renderPosts();
+    applyFilters();
     showLoading(false);
 }
 
 // Navigate to article page
 function openArticle(slug) {
-    window.location.href = `blog-post.html?slug=${slug}`;
+    window.location.href = `blog-post.html?slug=${encodeURIComponent(slug)}`;
 }
 
 // Show/hide loading
