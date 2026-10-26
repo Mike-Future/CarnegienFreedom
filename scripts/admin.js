@@ -1,6 +1,10 @@
 // CarnegienFreedom Dynamic Admin Panel
 // Full CRUD operations through the Node.js API
 
+(() => {
+if (window.__legitWaysAdminInitialized) return;
+window.__legitWaysAdminInitialized = true;
+
 let db = null;
 let currentPost = null;
 let isEditing = false;
@@ -915,7 +919,7 @@ async function savePost() {
 
     } catch (error) {
         console.error('Error saving post:', error);
-        alert('Error saving post. Please try again.');
+        alert(`Unable to save the post: ${error.message}`);
     }
 
     showLoading(false);
@@ -1054,13 +1058,13 @@ async function renderPostsList() {
                 </div>
             </div>
             <div class="post-actions">
-                <button type="button" class="btn-icon btn-view" onclick="viewPost('${post.slug}')" title="View post" aria-label="View post">
+                <button type="button" class="btn-icon btn-view" data-post-action="view" data-post-slug="${encodeURIComponent(post.slug)}" title="View post" aria-label="View post">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
-                <button type="button" class="btn-icon btn-edit" onclick="editPost('${post.id}')" title="Edit post" aria-label="Edit post">
+                <button type="button" class="btn-icon btn-edit" data-post-action="edit" data-post-id="${escapeAttribute(post.id)}" title="Edit post" aria-label="Edit post">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
                 </button>
-                <button type="button" class="btn-icon btn-delete" onclick="deletePost('${post.id}')" title="Delete post" aria-label="Delete post">
+                <button type="button" class="btn-icon btn-delete" data-post-action="delete" data-post-id="${escapeAttribute(post.id)}" title="Delete post" aria-label="Delete post">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
                 </button>
             </div>
@@ -1069,7 +1073,7 @@ async function renderPostsList() {
 }
 
 function viewPost(slug) {
-    window.open(`blog-post.html?slug=${slug}`, '_blank');
+    window.open(`blog-post.html?slug=${encodeURIComponent(slug)}`, '_blank');
 }
 
 async function editPost(id) {
@@ -1134,7 +1138,7 @@ async function deletePost(id) {
         showNotification('Post deleted successfully');
     } catch (error) {
         console.error('Error deleting post:', error);
-        alert('Error deleting post. Please try again.');
+        alert(`Unable to delete the post: ${error.message}`);
     }
 
     showLoading(false);
@@ -1343,6 +1347,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('teamProfilesForm')?.addEventListener('submit', saveTeamProfiles);
     document.getElementById('pageContentPage')?.addEventListener('change', loadPageContentEditor);
     document.getElementById('pageContentForm')?.addEventListener('submit', event => event.preventDefault());
+    document.getElementById('postsList')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-post-action]');
+        if (!button) return;
+        if (button.dataset.postAction === 'view') viewPost(decodeURIComponent(button.dataset.postSlug));
+        if (button.dataset.postAction === 'edit') {
+            editPost(button.dataset.postId).catch(error => {
+                console.error('Unable to open post editor:', error);
+                alert(`Unable to open the post: ${error.message}`);
+            });
+        }
+        if (button.dataset.postAction === 'delete') deletePost(button.dataset.postId);
+    });
 
     document.querySelectorAll('.tab-btn[data-tab]').forEach(button => {
         button.addEventListener('click', () => switchTab(button.dataset.tab));
@@ -1407,3 +1423,4 @@ window.viewPost = viewPost;
 window.editPost = editPost;
 window.deletePost = deletePost;
 window.downloadDocument = downloadDocument;
+})();

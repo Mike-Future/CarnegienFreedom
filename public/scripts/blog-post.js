@@ -104,7 +104,7 @@ function renderArticle() {
     // Render content
     container.innerHTML = `
         <img src="${currentPost.image}" alt="${currentPost.title}" class="article-featured-image" 
-             onerror="this.style.display='none'">
+             data-hide-on-error>
 
         <div class="article-content">
             ${currentPost.content}
@@ -166,9 +166,9 @@ function renderRelatedArticles() {
     }
 
     const relatedHTML = related.map(post => `
-        <article class="blog-card" onclick="openArticle('${post.slug}')" style="cursor: pointer;">
+        <a class="blog-card" href="blog-post.html?slug=${encodeURIComponent(post.slug)}" style="display: block; color: inherit; text-decoration: none;">
             <img src="${post.image}" alt="${post.title}" class="blog-image" style="height: 150px;" 
-                 onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80'">
+                 data-fallback-src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80">
             <div class="blog-content" style="padding: 1.25rem;">
                 <span class="blog-category">${post.categoryLabel}</span>
                 <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">${post.title}</h3>
@@ -176,7 +176,7 @@ function renderRelatedArticles() {
                     <span><i class="fas fa-clock"></i> ${post.readTime}</span>
                 </div>
             </div>
-        </article>
+        </a>
     `).join('');
 
     relatedGrid.innerHTML = relatedHTML;
@@ -262,3 +262,14 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Make functions globally available
 window.openArticle = openArticle;
 window.toggleMobileMenu = toggleMobileMenu;
+
+document.addEventListener('error', event => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement)) return;
+    if (image.dataset.hideOnError !== undefined) {
+        image.style.display = 'none';
+    } else if (image.dataset.fallbackSrc) {
+        image.removeAttribute('data-fallback-src');
+        image.src = image.dataset.fallbackSrc;
+    }
+}, true);

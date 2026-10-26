@@ -57,6 +57,7 @@ NODE_ENV=development
 PORT=3000
 DATABASE_URL=postgres://legitways:legitways_local_password@localhost:5432/legitways
 DB_SSL=false
+DB_CONNECTION_TIMEOUT_MS=5000
 ALLOWED_ORIGINS=http://localhost:3000
 ADMIN_BOOTSTRAP_USERNAME=admin
 ADMIN_BOOTSTRAP_EMAIL=admin@example.com
@@ -70,6 +71,7 @@ BACKUP_S3_SECRET_ACCESS_KEY=your-backup-secret-key
 Configure the S3 bucket and credentials as managed secrets in production. For S3-compatible storage, set `BACKUP_S3_ENDPOINT`; for providers that require path-style addressing, also set `BACKUP_S3_FORCE_PATH_STYLE=true`. `BACKUP_S3_PREFIX` defaults to `legitways/backups`. `BACKUP_SCHEDULE_CRON` defaults to `0 2 * * *` (02:00 UTC daily), and `BACKUP_RETENTION_COUNT` defaults to `30`. Backups are compressed and sent with S3 server-side encryption. The backup access key needs list, put, get, and delete access limited to the configured bucket/prefix. Without `BACKUP_S3_BUCKET`, scheduled backups remain disabled and the server logs this explicitly.
 
 For production, use managed secrets, `NODE_ENV=production`, `DB_SSL=true`, and set `ALLOWED_ORIGINS` to the exact HTTPS origins that should call the API.
+The web server starts even if PostgreSQL is temporarily unreachable. Public blog pages then fall back to the bundled `data/blog-data.json`; admin login and editing require PostgreSQL to recover. `DB_CONNECTION_TIMEOUT_MS` controls how long each database connection attempt waits (default `5000`).
 
 ## External Additions Required
 

@@ -17,6 +17,27 @@ const scriptsByPage = {
     'terms-of-use': ['/scripts/page-content-sections.js', '/scripts/page-content.js'],
 };
 
+function loadLegacyScript(source) {
+    const pendingScripts = window.__legitWaysLegacyScripts || new Map();
+    window.__legitWaysLegacyScripts = pendingScripts;
+    if (pendingScripts.has(source)) {
+        return pendingScripts.get(source);
+    }
+
+    const scriptPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = `${source}?v=20261026-csp-nonce`;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`Unable to load page script: ${source}`));
+        document.body.appendChild(script);
+    }).catch((error) => {
+        pendingScripts.delete(source);
+        throw error;
+    });
+    pendingScripts.set(source, scriptPromise);
+    return scriptPromise;
+}
+
 export default function LegacyScripts() {
     useEffect(() => {
         const page = window.location.pathname.split('/').filter(Boolean).pop() || 'home';
@@ -27,15 +48,9 @@ export default function LegacyScripts() {
         const loadScripts = async () => {
             for (const source of scripts) {
                 if (cancelled) return;
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = `${source}?v=20261020-page-sections`;
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.body.appendChild(script);
-                });
+                await loadLegacyScript(source);
             }
-            document.dispatchEvent(new Event('DOMContentLoaded'));
+            if (!cancelled) document.dispatchEvent(new Event('DOMContentLoaded'));
         };
 
         loadScripts().catch((error) => console.error('Unable to load page script:', error));

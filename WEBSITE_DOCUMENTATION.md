@@ -301,11 +301,11 @@ Before publishing new content:
 
 ### Blog shows local content instead of database content
 
-Check `/api/health`, `DATABASE_URL`, database reachability, and `DB_SSL`. The public pages intentionally fall back to `data/blog-data.json` when the API is unavailable.
+The web server starts independently of PostgreSQL and public blog pages fall back to `data/blog-data.json` when the API is unavailable. Check `/api/health`, `DATABASE_URL`, database reachability, and `DB_SSL` to restore live content.
 
 ### Admin cannot log in
 
-Confirm the database is available, the account exists, and the request is not rate-limited. Inspect the server logs for database errors. Do not disable authentication to work around the issue.
+Admin login and editing require PostgreSQL; the local JSON fallback is read-only. Confirm `/api/health` returns `200`, the account exists and is approved, and the request is not rate-limited. Inspect the server logs for database errors. Do not disable authentication to work around the issue.
 
 ### Browser reports a CSP violation
 

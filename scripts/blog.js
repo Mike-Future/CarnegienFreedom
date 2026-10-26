@@ -98,9 +98,9 @@ function renderPosts() {
         const isFeatured = Boolean(featuredPost && post.id === featuredPost.id);
 
         return `
-            <article class="blog-card ${isFeatured ? 'featured-post' : ''}" onclick="openArticle('${post.slug}')">
+            <article class="blog-card ${isFeatured ? 'featured-post' : ''}" data-post-slug="${encodeURIComponent(post.slug)}" tabindex="0" role="link">
                 <img src="${post.image}" alt="${post.title}" class="blog-image" 
-                     onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80'">
+                     data-fallback-src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80">
                 <div class="blog-content">
                     ${isFeatured ? '<div class="featured-badge"><i class="fas fa-star"></i> Featured</div>' : ''}
                     <span class="blog-category">${post.categoryLabel}</span>
@@ -120,6 +120,26 @@ function renderPosts() {
 
 // Setup event listeners
 function setupEventListeners() {
+    const grid = document.getElementById('blogGrid');
+    grid.addEventListener('click', event => {
+        const card = event.target.closest('[data-post-slug]');
+        if (card) openArticle(decodeURIComponent(card.dataset.postSlug));
+    });
+    grid.addEventListener('keydown', event => {
+        const card = event.target.closest('[data-post-slug]');
+        if (card && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            openArticle(decodeURIComponent(card.dataset.postSlug));
+        }
+    });
+    grid.addEventListener('error', event => {
+        const image = event.target;
+        if (image instanceof HTMLImageElement && image.dataset.fallbackSrc) {
+            image.removeAttribute('data-fallback-src');
+            image.src = image.dataset.fallbackSrc;
+        }
+    }, true);
+
     // Category filters
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => {

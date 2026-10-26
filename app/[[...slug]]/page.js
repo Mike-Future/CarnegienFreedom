@@ -22,12 +22,7 @@ const pages = {
     admin: 'admin.html',
 };
 
-export const dynamicParams = false;
-export const revalidate = 3600;
-
-export function generateStaticParams() {
-    return Object.keys(pages).map((slug) => ({ slug: slug === 'home' ? [] : [slug] }));
-}
+export const dynamic = 'force-dynamic';
 
 function toNextLinks(html) {
     return html

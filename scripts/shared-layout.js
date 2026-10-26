@@ -28,7 +28,7 @@ function configureSharedHeader() {
 function loadScript(path) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = `${path}?v=20261020-page-sections`;
+        script.src = `${path}?v=20261026-csp-nonce`;
         script.onload = resolve;
         script.onerror = () => reject(new Error(`Unable to load page script: ${path}`));
         document.body.append(script);

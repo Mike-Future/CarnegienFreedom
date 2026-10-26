@@ -20,16 +20,34 @@ export default function BlogPage() {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [usingFallback, setUsingFallback] = useState(false);
 
     useEffect(() => {
-        fetch('/api/posts')
-            .then((response) => {
-                if (!response.ok) throw new Error('Unable to load articles');
-                return response.json();
-            })
-            .then(setPosts)
-            .catch((loadError) => setError(loadError.message))
-            .finally(() => setLoading(false));
+        async function loadPosts() {
+            try {
+                const response = await fetch('/api/posts');
+                if (!response.ok) throw new Error(`Blog service returned ${response.status}`);
+                setPosts(await response.json());
+            } catch (apiError) {
+                try {
+                    const fallbackResponse = await fetch('/data/blog-data.json');
+                    if (!fallbackResponse.ok) throw new Error(`Local blog data returned ${fallbackResponse.status}`);
+                    const fallbackData = await fallbackResponse.json();
+                    if (!Array.isArray(fallbackData.posts)) throw new Error('Local blog data is invalid');
+                    setPosts(fallbackData.posts);
+                    setUsingFallback(true);
+                } catch (fallbackError) {
+                    console.error('Unable to load blog data:', { apiError, fallbackError });
+                    setError('Articles are temporarily unavailable. Please try again later.');
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        const tag = new URLSearchParams(window.location.search).get('tag');
+        if (tag) setQuery(tag);
+        loadPosts();
     }, []);
 
     const visiblePosts = useMemo(() => {
@@ -63,12 +81,14 @@ export default function BlogPage() {
                         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search articles..." aria-label="Search articles" />
                     </div>
                 </div>
+                {usingFallback && !loading && <p className="export-status" role="status">Showing saved articles while the blog service is unavailable. Admin editing requires the database connection.</p>}
                 <div className="blog-grid">
                     {loading && <div className="loading-spinner"><i className="fas fa-spinner" /><p>Loading articles...</p></div>}
                     {!loading && error && <div className="no-results"><i className="fas fa-exclamation-circle" /><h3>Unable to load articles</h3><p>{error}</p></div>}
                     {!loading && !error && visiblePosts.length === 0 && <div className="no-results"><i className="fas fa-search" /><h3>No articles found</h3><p>Try adjusting your search or category filter.</p></div>}
                     {!loading && !error && visiblePosts.map((post, index) => {
-                        const featured = category === 'all' && !query.trim() && post.featured && index === 0;
+                        const featured = category === 'all' && !query.trim() && post.featured
+                            && !visiblePosts.slice(0, index).some((item) => item.featured);
                         return (
                             <a className={`blog-card ${featured ? 'featured-post' : ''}`} href={`/blog-post?slug=${encodeURIComponent(post.slug)}`} key={post.id}>
                                 <img src={post.image} alt={post.title} className="blog-image" />

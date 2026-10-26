@@ -16,10 +16,34 @@ export default function ArticlePage({ slug }) {
             setError('No article specified');
             return;
         }
-        Promise.all([
-            fetch(`/api/posts/slug/${encodeURIComponent(slug)}`).then((response) => response.ok ? response.json() : null),
-            fetch('/api/posts').then((response) => response.ok ? response.json() : []),
-        ]).then(([loadedPost, posts]) => {
+        async function loadArticle() {
+            let loadedPost;
+            let posts;
+            try {
+                const response = await fetch(`/api/posts/slug/${encodeURIComponent(slug)}`);
+                if (response.status === 404) {
+                    setError('Article not found');
+                    return;
+                }
+                if (!response.ok) throw new Error(`Blog service returned ${response.status}`);
+                loadedPost = await response.json();
+                const postsResponse = await fetch('/api/posts');
+                posts = postsResponse.ok ? await postsResponse.json() : [loadedPost];
+            } catch (apiError) {
+                try {
+                    const response = await fetch('/data/blog-data.json');
+                    if (!response.ok) throw new Error(`Local blog data returned ${response.status}`);
+                    const data = await response.json();
+                    if (!Array.isArray(data.posts)) throw new Error('Local blog data is invalid');
+                    posts = data.posts;
+                    loadedPost = posts.find((item) => item.slug === slug) || null;
+                } catch (fallbackError) {
+                    console.error('Unable to load article:', { apiError, fallbackError });
+                    setError('Unable to load article. Please try again later.');
+                    return;
+                }
+            }
+
             if (!loadedPost) {
                 setError('Article not found');
                 return;
@@ -27,7 +51,9 @@ export default function ArticlePage({ slug }) {
             setPost(loadedPost);
             setRelated(posts.filter((item) => item.id !== loadedPost.id && item.category === loadedPost.category).slice(0, 3));
             document.title = `${loadedPost.title} | CarnegienFreedom Blog`;
-        }).catch(() => setError('Unable to load article. Please try again later.'));
+        }
+
+        loadArticle();
     }, [slug]);
 
     if (error) {

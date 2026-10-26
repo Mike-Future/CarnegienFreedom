@@ -39,25 +39,33 @@ const PAGE_CONTENT_KEYS = new Set([
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: Number(process.env.DB_CONNECTION_TIMEOUT_MS || 5000)
 });
 
 app.disable('x-powered-by');
+app.use((req, res, next) => {
+    const nonce = crypto.randomBytes(16).toString('base64');
+    const csp = [
+        "default-src 'self'",
+        `script-src 'self' 'nonce-${nonce}' https://cdnjs.cloudflare.com${isProduction ? '' : " 'unsafe-eval'"}`,
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
+        "img-src 'self' https: data:",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'"
+    ].join('; ');
+
+    req.headers['content-security-policy'] = csp;
+    req.headers['x-nonce'] = nonce;
+    res.setHeader('Content-Security-Policy', csp);
+    next();
+});
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com'],
-            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
-            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com', 'data:'],
-            imgSrc: ["'self'", 'https:', 'data:'],
-            connectSrc: ["'self'"],
-            objectSrc: ["'none'"],
-            baseUri: ["'self'"],
-            formAction: ["'self'"],
-            frameAncestors: ["'none'"]
-        }
-    },
+    contentSecurityPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 app.use(cors((req, callback) => {
@@ -864,43 +872,83 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 app.get('/api/posts', async (req, res) => {
-    const result = await pool.query('SELECT * FROM posts ORDER BY date DESC NULLS LAST');
-    res.json(result.rows.map(normalizePost));
+    if (!databaseAvailable) {
+        return res.status(503).json({ error: 'Database is unavailable' });
+    }
+    try {
+        const result = await pool.query('SELECT * FROM posts ORDER BY date DESC NULLS LAST');
+        res.json(result.rows.map(normalizePost));
+    } catch (error) {
+        console.error('Unable to load blog posts:', error.message);
+        res.status(503).json({ error: 'Database is unavailable' });
+    }
 });
 
 app.get('/api/posts/slug/:slug', async (req, res) => {
-    const result = await pool.query('SELECT * FROM posts WHERE slug = $1 LIMIT 1', [req.params.slug]);
-    if (!result.rows[0]) {
-        return res.status(404).json({ error: 'Post not found' });
+    if (!databaseAvailable) {
+        return res.status(503).json({ error: 'Database is unavailable' });
     }
-    res.json(normalizePost(result.rows[0]));
+    try {
+        const result = await pool.query('SELECT * FROM posts WHERE slug = $1 LIMIT 1', [req.params.slug]);
+        if (!result.rows[0]) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+        res.json(normalizePost(result.rows[0]));
+    } catch (error) {
+        console.error('Unable to load blog post:', error.message);
+        res.status(503).json({ error: 'Database is unavailable' });
+    }
 });
 
 app.get('/api/posts/category/:category', async (req, res) => {
-    const result = await pool.query('SELECT * FROM posts WHERE category = $1 ORDER BY date DESC NULLS LAST', [req.params.category]);
-    res.json(result.rows.map(normalizePost));
+    if (!databaseAvailable) {
+        return res.status(503).json({ error: 'Database is unavailable' });
+    }
+    try {
+        const result = await pool.query('SELECT * FROM posts WHERE category = $1 ORDER BY date DESC NULLS LAST', [req.params.category]);
+        res.json(result.rows.map(normalizePost));
+    } catch (error) {
+        console.error('Unable to load blog category:', error.message);
+        res.status(503).json({ error: 'Database is unavailable' });
+    }
 });
 
 app.get('/api/posts/featured', async (req, res) => {
-    const result = await pool.query('SELECT * FROM posts WHERE featured = true ORDER BY date DESC NULLS LAST');
-    res.json(result.rows.map(normalizePost));
+    if (!databaseAvailable) {
+        return res.status(503).json({ error: 'Database is unavailable' });
+    }
+    try {
+        const result = await pool.query('SELECT * FROM posts WHERE featured = true ORDER BY date DESC NULLS LAST');
+        res.json(result.rows.map(normalizePost));
+    } catch (error) {
+        console.error('Unable to load featured blog posts:', error.message);
+        res.status(503).json({ error: 'Database is unavailable' });
+    }
 });
 
 app.get('/api/posts/search', async (req, res) => {
-    const q = String(req.query.q || '').trim();
-    if (!q) {
-        const result = await pool.query('SELECT * FROM posts ORDER BY date DESC NULLS LAST');
-        return res.json(result.rows.map(normalizePost));
+    if (!databaseAvailable) {
+        return res.status(503).json({ error: 'Database is unavailable' });
     }
+    const q = String(req.query.q || '').trim();
+    try {
+        if (!q) {
+            const result = await pool.query('SELECT * FROM posts ORDER BY date DESC NULLS LAST');
+            return res.json(result.rows.map(normalizePost));
+        }
 
-    const searchTerm = `%${q}%`;
-    const result = await pool.query(
-        `SELECT * FROM posts
-         WHERE title ILIKE $1 OR excerpt ILIKE $1 OR categoryLabel ILIKE $1 OR tags::text ILIKE $1
-         ORDER BY date DESC NULLS LAST`,
-        [searchTerm]
-    );
-    res.json(result.rows.map(normalizePost));
+        const searchTerm = `%${q}%`;
+        const result = await pool.query(
+            `SELECT * FROM posts
+             WHERE title ILIKE $1 OR excerpt ILIKE $1 OR categoryLabel ILIKE $1 OR tags::text ILIKE $1
+             ORDER BY date DESC NULLS LAST`,
+            [searchTerm]
+        );
+        res.json(result.rows.map(normalizePost));
+    } catch (error) {
+        console.error('Unable to search blog posts:', error.message);
+        res.status(503).json({ error: 'Database is unavailable' });
+    }
 });
 
 app.post('/api/posts', requireAdmin, async (req, res) => {
@@ -1128,18 +1176,7 @@ app.use((req, res, next) => {
 });
 
 nextApp.prepare()
-    .then(async () => {
-        await initDatabase();
-        try {
-            backupService.start(pool);
-        } catch (error) {
-            console.error('Unable to initialize scheduled database backups:', error.message);
-        }
-    })
-    .catch((error) => {
-        console.error('Database unavailable; serving local blog data:', error.message);
-    })
-    .finally(() => {
+    .then(() => {
         app.use((req, res) => {
             if (req.path.startsWith('/api/')) {
                 return res.status(404).json({ error: 'API route not found' });
@@ -1151,4 +1188,20 @@ nextApp.prepare()
         app.listen(PORT, () => {
             console.log(`Server started on http://localhost:${PORT}`);
         });
+
+        initDatabase()
+            .then(() => {
+                try {
+                    backupService.start(pool);
+                } catch (error) {
+                    console.error('Unable to initialize scheduled database backups:', error.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Database unavailable; serving local blog data:', error.message);
+            });
+    })
+    .catch((error) => {
+        console.error('Unable to prepare the web application:', error.message);
+        process.exitCode = 1;
     });
